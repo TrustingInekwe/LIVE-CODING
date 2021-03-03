@@ -6,7 +6,7 @@ import ddf.minim.ugens.*;
 Minim minim;
 AudioOutput out;
 //AudioSample kick, snare, clap;
-AudioPlayer kick, snare, clap;
+AudioPlayer kick, snare, clap, hat;
 //import processing.sound.*;
 
 //=================================================================================initialization begins=========================================================================================================================================
@@ -69,33 +69,34 @@ fr_0 = 65.41, fr_1 = 73.42, fr_2 = 82.41, fr_3 = 87.31, fr_4 = 98.00, fr_5 = 110
 Waveform disWave0 = Waves.SINE, disWave1 = Waves.SINE, disWave2 = Waves.SINE, disWave3 = Waves.SINE, disWave4 = Waves.SINE, disWave5 = Waves.SINE, disWave6 = Waves.SINE, disWave7 = Waves.SINE;
 float gainValue0 = 0.5f, gainValue1 = 0.5f, gainValue2 = 0.5f, gainValue3 = 0.5f, gainValue4 = 0.5f, gainValue5 = 0.5f, gainValue6 = 0.5f, gainValue7 = 0.5f, gainValue8 = 0.5f;
 int bitRes0 = 0, bitRes1 = 0, bitRes2 = 0, bitRes3 = 0, bitRes4 = 0, bitRes5 = 0, bitRes6 = 0, bitRes7 = 0 ; //1-3
-float delayVal0 = 0, delayVal1 = 0, delayVal2 = 0, delayVal3 = 0, delayVal4 = 0, delayVal5 = 0, delayVal6 = 0, delayVal7 = 0;  // 0.1 - 0.2;
+float delayVal0 = 0.0, delayVal1 = 0.0, delayVal2 = 0.0, delayVal3 = 0.0, delayVal4 = 0.0, delayVal5 = 0.0, delayVal6 = 0.0, delayVal7 = 0.0;  // 0.1 - 0.2;
 //Sampler     snare;
 class ToneInstrument implements Instrument
 {
   Oscil sineOsc, sineOsc1, LFO;
   Pan pan, pan1;
-  //ADSR adsr, adsr1;
+  ADSR adsr;
   Delay myDelay, myDelay1;
   BitCrush bitCrush;
-  ADSR adsr = new ADSR( 0.5, 0.00001, 0.05, 0.5, 0.1 );
   //Gain gain;
   ToneInstrument( float oscFrequency, int panValue, Waveform wave, float gainValue, float delayVal, int bitRes) //for synth
   {
     sineOsc = new Oscil( oscFrequency, gainValue, wave );
     //osc frequency + 
     //ADSR(float maxAmp, float attTime, float decTime, float susLvl, float relTime)
+    adsr = new ADSR( 0.5, 0.00001, 0.05, 0.5, 0.1 );
     bitCrush = new BitCrush(bitRes, out.sampleRate());
-    myDelay = new Delay( delayVal, 0.1, true, false );
+    myDelay = new Delay( delayVal, 0.1, true, true );
     //adsr = new ADSR( 0.5, 0.00001, 0.05, 0.5, 0.1 );  //NEED TO PATCH THIS UGEN (adsr) TO sineOsc AND pan
     pan = new Pan(panValue);
     sineOsc.patch(adsr);
-    //adsr.patch(sineOsc);
+    //adsr.patch(myDelay);
     //gain.patch( adsr );
-    adsr.patch(bitCrush);
-    //myDelay.patch(pan);
-    bitCrush.patch(pan);
-    pan.patch( out );
+    if(bitRes == 0 && delayVal == 0.0){adsr.patch(pan);}
+    else if(bitRes != 0 && delayVal == 0.0) {adsr.patch(bitCrush); bitCrush.patch(pan);}
+    else if(bitRes == 0 && delayVal != 0.0) {adsr.patch(myDelay); myDelay.patch(pan);}
+    else if(bitRes != 0 && delayVal != 0.0) {adsr.patch(bitCrush); bitCrush.patch(myDelay); myDelay.patch(pan);}
+    //pan.patch( out );
     //LFO = new Oscil( 0.5, 1.0, wave );
     //adsr.patch( pan );
     //LFO.patch( pan.pan );
@@ -103,32 +104,33 @@ class ToneInstrument implements Instrument
   ToneInstrument( float oscFrequency, int panValue, Waveform wave, float gainValue, float delayVal)  //for kick
   {
     sineOsc1 = new Oscil( oscFrequency, gainValue, wave );
+    adsr = new ADSR( 0.5, 0.00001, 0.05, 0.5, 0.1 );
     //adsr = new ADSR( 0.5, 0.00001, 0.05, 0.5, 0.1 );
-    pan1 = new Pan(panValue);
-    myDelay1 = new Delay( delayVal, 0.1, true, false );
+    pan = new Pan(panValue);
+    myDelay1 = new Delay( delayVal, 0.1, true, true );
     sineOsc1.patch(adsr);
     //adsr.patch(sineOsc);
     //gain.patch( adsr );
-    adsr.patch(myDelay1);
-    myDelay1.patch(pan1);
-    pan1.patch( out );
+    if(delayVal == 0.0){adsr.patch(pan);}
+    else {adsr.patch(myDelay1); myDelay1.patch(pan);}
+    
+    //pan.patch( out );
     
   }
-  
   void noteOn( float dur )
   {
-    //pan.patch( out );
+    pan.patch( out );
     adsr.noteOn();
     //adsr1.noteOn();
-    
-    
+    //pan1.patch(out);
   }
   void noteOff()
   {
-    //pan.unpatch( out );
+    pan.unpatch( out );
     //adsr.unpatchAfterRelease( out );
     adsr.noteOff();
     //adsr1.noteOff();
+    //pan1.patch(out);
   }
 }
 
@@ -187,12 +189,14 @@ public void setup(){
      decision6[i] = 8;
    }
    for (int i = 0; i<8; i++){
-     decision7[i] = 8;
+     decision7[i] = 8; 
    }
   
   snare = minim.loadFile("snare_clap.wav");
   //kick = minim.loadFile("sub_kick.wav", 512);
   clap = minim.loadFile("808-clap.wav");
+  hat = minim.loadFile("808-clap.wav");
+  //snare.setVolume(0.1);
   
   
 
@@ -674,1490 +678,7 @@ public void draw() {
 //print(entVal_pattern);
 
 //================================================================================NAVIGATING THE PATTERN GRIDS=========================================================================================================================== 
-       if(patList1 == 0){
-       if(upward == 0){
-         currentNotePosition = 0;
-            cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(255) );
-            
-            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(#C6C6C6) );
-          
-           if (righty == -1){
-            if( entVal_instrument == 2 && highlight == 1 ){
-              patList2 = 0;
-              instSelect[0] = 1;
-            }
-            else{
-              //cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(0, 255, 0) );
-              cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(0, 255, 0) );
-              cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(#C6C6C6) );
-            }
-          }
-          if (righty == 0){
-            instSelect[0] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                
-                if ( synthSel == 1){
-                    
-                     notes();
-                }
-              }
-              else {
-                if(decision0[0] == 1){
-                  decision0[0] = 0;
-                }
-                else
-                  decision0[0] = 1;
-                entVal_pattern = 0;
-              }
-              
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(255) );
-          }
-        }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                  currentNotePosition = 1;   
-                  notes();
-                }
-              }
-              else {
-                if(decision0[1] == 1){
-                  decision0[1] = 0;
-                }
-                else
-                  decision0[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision0[2] == 1){
-                  decision0[2] = 0;
-                }
-                else
-                  decision0[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision0[3] == 1){
-                  decision0[3] = 0;
-                }
-                else
-                  decision0[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(#C6C6C6) );
-            }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                if(decision0[4] == 1){
-                  decision0[4] = 0;
-                }
-                else
-                  decision0[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision0[5] == 1){
-                  decision0[5] = 0;
-                }
-                else
-                  decision0[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision0[6] == 1){
-                  decision0[6] = 0;
-                }
-                else
-                  decision0[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 0).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument0.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision0[7] == 1){
-                  decision0[7] = 0;
-                }
-                else
-                  decision0[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 0).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-       
-
-        
-        if(upward == 1){
-          currentNotePosition = 1;
-            cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 0).setColorBackground( color(#C6C6C6) );
-            
-            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(#C6C6C6) );
-          
-    
-          if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[1] = 1;
-            }
-            else{
-              cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(0, 255, 0) );
-              cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
-            }
-          }
-          if (righty == 0){
-            instSelect[1] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision1[0] == 1){
-                  decision1[0] = 0;
-                }
-                else
-                  decision1[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision1[1] == 1){
-                  decision1[1] = 0;
-                }
-                else
-                  decision1[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                if(decision1[2] == 1){
-                  decision1[2] = 0;
-                }
-                else
-                  decision1[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                if(decision1[3] == 1){
-                  decision1[3] = 0;
-                }
-                else
-                  decision1[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                if(decision1[4] == 1){
-                  decision1[4] = 0;
-                }
-                else
-                  decision1[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                if(decision1[5] == 1){
-                  decision1[5] = 0;
-                }
-                else
-                  decision1[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                if(decision1[6] == 1){
-                  decision1[6] = 0;
-                }
-                else
-                  decision1[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument1.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                if(decision1[7] == 1){
-                  decision1[7] = 0;
-                }
-                else
-                  decision1[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-        
-        if(upward == 2){
-            cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(#C6C6C6) );
-            
-            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(#C6C6C6) );
-            
-           if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[2] = 1;
-            }
-            else{
-            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
-            }
-           }
-          if (righty == 0){
-            instSelect[2] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                decision2[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision2[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision2[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision2[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                     notes();
-                }
-              }
-              else {
-                decision2[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                       notes();
-                }
-              }
-              else {
-                decision2[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision2[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument2.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision2[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-        
-        if(upward == 3){
-            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(#C6C6C6) );
-            
-            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(#C6C6C6) );
-            
-          
-           if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[3] = 1;
-          }
-          else{
-            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
-          }
-           }
-          if (righty == 0){
-            instSelect[3] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision3[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision3[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                       notes();
-                }
-              }
-              else {
-                decision3[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision3[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision3[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision3[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision3[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument3.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                       notes();
-                }
-              }
-              else {
-                decision3[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-        
-        if(upward == 4){
-            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(#C6C6C6) );
-            
-            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(#C6C6C6) );
-          
-          
-          if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[4] = 1;
-          }
-          else{
-            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 0){
-            instSelect[4] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                       notes();
-                }
-              }
-              else {
-                decision4[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument4.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision4[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-        
-        if(upward == 5){
-            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(#C6C6C6) );
-            
-            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(#C6C6C6) );
-          
-          if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[5] = 1;
-          }
-          else{
-            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 0){
-            instSelect[5] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument5.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision5[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-        
-        if(upward == 6){
-            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(#C6C6C6) );  
-            
-            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 7).setColorBackground( color(#C6C6C6) );
-            //cp5.get(ScrollableList.class, "Instrument" + 7).setColorBackground( color(0,45, 90) );
-          
-          if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[6] = 1;
-          }
-          else{
-            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 0){
-            instSelect[6] = 0;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument6.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision6[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-        
-        if(upward == 7){
-            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
-            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(#C6C6C6) );
-          
-          if (righty == -1){
-            if(entVal_instrument == 2 && highlight == 1){
-              patList2 = 0;
-              instSelect[7] = 1;
-          }
-          else{
-            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 0){
-            
-            instSelect[6] = 0;
-            //close = 1;
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                       notes();
-                }
-              }
-              else {
-                decision7[0] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(255) );
-          }
-          }
-          if (righty == 1){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision7[1] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 2){
-            if(entVal_pattern == 1  && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision7[2] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 3){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision7[3] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 4){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision7[4] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 5){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision7[5] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 6){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                       notes();
-                }
-              }
-              else {
-                decision7[6] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(#C6C6C6) );
-            cp5.get(controlP5.Button.class, "H" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-          if (righty == 7){
-            if(entVal_pattern == 1 && highlight == 1){
-              if(instrument7.getLabel() == "SYNTH"){
-                if ( synthSel == 1){
-                      notes();
-                }
-              }
-              else {
-                decision7[7] = 1;
-                entVal_pattern = 0;
-              }
-          }
-          else{
-            cp5.get(controlP5.Button.class, "H" + 7).setColorBackground( color(0, 255, 0) );
-            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(#C6C6C6) );
-          }
-          }
-        }
-       }
+      runningthrough();
         //print("first leave =" + leave);
      
       
@@ -2280,11 +801,16 @@ if (leave == 0 || propLeave == 0){
                     //kick.play(); 
                   }
                   if(instrument1.getLabel() == "SNARE"){
-                    //snare.rewind();
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                     //SNARE0();
                     //snare.play(); 
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
               }
              if (decision2[0] == 1 ){
                  if(instrument2.getLabel() == "KICK"){
@@ -2294,9 +820,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument2.getLabel() == "SNARE"){
-                    //SYNTH0();
-                    //snare.play(); 
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
              if (decision3[0] ==  1){
                   if(instrument3.getLabel() == "KICK"){
@@ -2307,8 +838,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
               }
              if (decision4[0] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -2318,8 +855,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
              if (decision5[0] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -2329,8 +872,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
              if (decision6[0] == 1 ){
                   if(instrument6.getLabel() == "KICK"){
@@ -2340,8 +889,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[0] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -2351,8 +906,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
           }
            if (run == 2){
@@ -2406,9 +967,14 @@ if (leave == 0 || propLeave == 0){
                     //kick.play(); 
                   }
                   if(instrument0.getLabel() == "SNARE"){
-                    //SNARE0();
-                    //snare.play(); 
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument0.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
              if (decision1[1] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -2419,9 +985,14 @@ if (leave == 0 || propLeave == 0){
                     //kick.play(); 
                   }
                   if(instrument1.getLabel() == "SNARE"){
-                    //SNARE0();
-                    //snare.play(); 
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[1] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -2431,10 +1002,15 @@ if (leave == 0 || propLeave == 0){
                   //KICK0();
                   //kick.play();
                  }
-                  if(instrument2.getLabel() == "SYNTH"){
-                    //SYNTH0();
-                    //snare.play(); 
+                  if(instrument2.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[1] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -2444,8 +1020,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
-                    //SYNTH0();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
                if (decision4[1] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -2455,8 +1037,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
                if (decision5[1] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -2466,8 +1054,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
                if (decision6[1] == 1 ){
                   if(instrument6.getLabel() == "KICK"){
@@ -2477,8 +1071,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
                if (decision7[1] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -2488,8 +1088,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
            }
             if (run == 3){  
@@ -2543,9 +1149,14 @@ if (leave == 0 || propLeave == 0){
                     //kick.play(); 
                   }
                   if(instrument0.getLabel() == "SNARE"){
-                    //SYNTH0();
-                    //snare.play(); 
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument0.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision1[2] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -2556,9 +1167,15 @@ if (leave == 0 || propLeave == 0){
                     //kick.play(); 
                   }
                   if(instrument1.getLabel() == "SNARE"){
-                    //SYNTH0();
+                    snare.rewind();
+                    snare.play();
                     //snare.play(); 
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[2] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -2568,8 +1185,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument2.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[2] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -2579,8 +1202,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision4[2] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -2590,8 +1219,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision5[2] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -2601,8 +1236,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision6[2] == 1 ){
                   if(instrument6.getLabel() == "KICK"){
@@ -2612,8 +1253,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[2] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -2623,8 +1270,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
             }
               if (run == 4){
@@ -2676,10 +1329,15 @@ if (leave == 0 || propLeave == 0){
                     //KICK0();
                     //kick.play(); 
                   }
-              //    if(instrument0.getLabel() == "SNARE"){
-              //      //SYNTH0();
-              //      snare.play(); 
-              //    }
+                  if(instrument0.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
+              if(instrument0.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision1[3] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -2690,9 +1348,14 @@ if (leave == 0 || propLeave == 0){
                     //kick.play(); 
                   }
                   if(instrument1.getLabel() == "SNARE"){
-                    //SYNTH0();
-                    //snare.play(); 
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[3] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -2702,8 +1365,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument2.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[3] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -2713,8 +1382,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision4[3] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -2724,8 +1399,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision5[3] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -2735,8 +1416,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision6[3] == 1 ){
                  if(instrument6.getLabel() == "KICK"){
@@ -2746,8 +1433,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[3] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -2757,8 +1450,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
+                    
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               }
               
@@ -2810,9 +1510,15 @@ if (leave == 0 || propLeave == 0){
                     out.playNote( 0.0, 0.1, myNote04);
                   //kick.play();
                  }
-               //   if(instrument0.getLabel() == "SNARE"){
-               //     snare.play();
-               //   }
+                  if(instrument0.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
+              if(instrument0.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision1[4] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -2822,8 +1528,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument1.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[4] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -2833,8 +1545,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument2.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[4] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -2844,8 +1562,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision4[4] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -2855,8 +1579,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision5[4] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -2866,8 +1596,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision6[4] == 1 ){
                   if(instrument6.getLabel() == "KICK"){
@@ -2877,8 +1613,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[4] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -2888,8 +1630,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }  
               }
             if(run == 6) {
@@ -2940,9 +1688,10 @@ if (leave == 0 || propLeave == 0){
                     out.playNote( 0.0, 0.1, myNote05);
                   //kick.play();
                  }
-              //    if(instrument0.getLabel() == "SNARE"){
-              //      snare.play();
-              //    }
+                  if(instrument0.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
                 }
               if (decision1[5] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -2950,9 +1699,15 @@ if (leave == 0 || propLeave == 0){
                     ToneInstrument myNote15 = new ToneInstrument(instList1[5] , panValue, disWave1, gainValue1, delayVal1);
                     out.playNote( 0.0, 0.1, myNote15);
                  }
-              //    if(instrument1.getLabel() == "SNARE"){
-              //      snare.play();
-              //    }
+                  if(instrument1.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[5] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -2960,9 +1715,15 @@ if (leave == 0 || propLeave == 0){
                     ToneInstrument myNote25 = new ToneInstrument(instList2[5] , panValue, disWave2, gainValue2, delayVal2);
                     out.playNote( 0.0, 0.1, myNote25);
                  }
-              //    if(instrument2.getLabel() == "SNARE"){
-              //      snare.play();
-              //    }
+                  if(instrument2.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[5] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -2970,9 +1731,15 @@ if (leave == 0 || propLeave == 0){
                     ToneInstrument myNote35 = new ToneInstrument(instList3[5] , panValue, disWave3, gainValue3, delayVal3);
                     out.playNote( 0.0, 0.1, myNote35);
                  }
-              //    if(instrument3.getLabel() == "SNARE"){
-              //      snare.play();
-              //    }
+                  if(instrument3.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision4[5] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -2982,8 +1749,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision5[5] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -2993,8 +1766,14 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
-                    //snare.play();
+                    snare.rewind();
+                    snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision6[5] == 1 ){
                  if(instrument6.getLabel() == "KICK"){
@@ -3004,8 +1783,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[5] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -3015,8 +1801,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }  
             }
             
@@ -3068,9 +1861,15 @@ if (leave == 0 || propLeave == 0){
                     out.playNote( 0.0, 0.1, myNote06);
                   //kick.play();
                  }
-               //   if(instrument0.getLabel() == "SNARE"){
-               //     snare.play();
-               //   }
+                  if(instrument0.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
+                  }
+              if(instrument0.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision1[6] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -3080,8 +1879,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument1.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[6] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -3091,8 +1897,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument2.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[6] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -3102,8 +1915,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision4[6] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -3113,8 +1933,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision5[6] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -3124,8 +1951,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision6[6] == 1 ){
                   if(instrument6.getLabel() == "KICK"){
@@ -3135,8 +1969,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[6] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -3146,8 +1987,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }  
             }
              if(run == 8){ 
@@ -3199,8 +2047,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument0.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument0.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision1[7] == 1 ){
                   if(instrument1.getLabel() == "KICK"){
@@ -3210,8 +2065,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument1.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument1.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision2[7] == 1 ){
                   if(instrument2.getLabel() == "KICK"){
@@ -3221,8 +2083,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument2.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument2.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision3[7] == 1 ){
                   if(instrument3.getLabel() == "KICK"){
@@ -3232,8 +2101,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument3.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument3.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision4[7] == 1 ){
                   if(instrument4.getLabel() == "KICK"){
@@ -3243,8 +2119,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument4.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument4.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision5[7] == 1 ){
                   if(instrument5.getLabel() == "KICK"){
@@ -3254,8 +2137,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument5.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument5.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision6[7] == 1 ){
                   if(instrument6.getLabel() == "KICK"){
@@ -3265,8 +2155,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument6.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument6.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }
               if (decision7[7] == 1 ){
                   if(instrument7.getLabel() == "KICK"){
@@ -3276,8 +2173,15 @@ if (leave == 0 || propLeave == 0){
                   //kick.play();
                  }
                   if(instrument7.getLabel() == "SNARE"){
+                    snare.rewind();
+                    snare.play();
                     //snare.play();
                   }
+              if(instrument7.getLabel() == "CLAP"){
+                //SNARE0();
+                clap.rewind();
+                clap.play(); 
+              }
                 }  
           }
           
@@ -4932,7 +3836,7 @@ if (leave == 0 || propLeave == 0){
   }
   if(righty > -1 && righty < 8 && entVal_instrument == 1 &&  highlight == 1 && (redhighlight == 1 || redhighlight == 4)){
     decide = 1;
-    patList2 = 0;
+    //patList2 = 0;
     //synthSel = 0; 
   }
   if( righty == -1 && entVal_instrument == 1 &&  highlight == 1 && (redhighlight == 1 || redhighlight == 4)){
@@ -4943,7 +3847,7 @@ if (leave == 0 || propLeave == 0){
     instUpward = 0;
     intRighty = 0;
     patList2 = 0;
-    decide = 1;
+    //decide = 1;
       if(upward == 0){
         instSelect[0] = 1;
       }
@@ -5313,6 +4217,13 @@ if (leave == 0 || propLeave == 0){
             print("time0Row = " + time0Row);
             print("\n");
           }
+          else if(instPropUpward == 0 && instPropRighty == 2){
+            time0Row++;
+            time0Row = constrain(time0Row, 0, 1);
+            print("\n");
+            print("time0Row = " + time0Row);
+            print("\n");
+          }
           else if(instPropUpward == 1 && instPropRighty == 1){
             time0Row++;
             time0Row = constrain(time0Row, 0, 2);
@@ -5366,6 +4277,13 @@ if (leave == 0 || propLeave == 0){
             print("\n");
           }
           else if(instPropUpward == 0 && instPropRighty == 1){
+            time0Row--;
+            time0Row = constrain(time0Row, 0, 2);
+            print("\n");
+            print("time0Row = " + time0Row);
+            print("\n");
+          }
+          else if(instPropUpward == 0 && instPropRighty == 2){
             time0Row--;
             time0Row = constrain(time0Row, 0, 2);
             print("\n");
@@ -5542,6 +4460,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A0p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal0 = 0.0;
+             }
+             if (time0Row == 1){
+               A0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A0p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes0 = 0;
+             }
+             if (time0Row == 1){
+               A0p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes0 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -5661,6 +4601,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B0p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.0;
+             }
+             if (time0Row == 1){
+               B0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B0p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes0 = 0;
+             }
+             if (time0Row == 1){
+               B0p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes0 = 2;
              }
            }
          }
@@ -5787,6 +4749,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C0p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal0 = 0.0;
+             }
+             if (time0Row == 1){
+               C0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C0p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes0 = 0;
+             }
+             if (time0Row == 1){
+               C0p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes0 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -5905,6 +4889,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D0p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D0p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal0 = 0.0;
+             }
+             if (time0Row == 1){
+               D0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D0p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes0 = 0;
+             }
+             if (time0Row == 1){
+               D0p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes0 = 2;
              }
            }
          }
@@ -6029,6 +5035,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E0p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal0 = 0.0;
+             }
+             if (time0Row == 1){
+               E0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E0p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes0 = 0;
+             }
+             if (time0Row == 1){
+               E0p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes0 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -6147,6 +5175,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F0p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F0p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal0 = 0.0;
+             }
+             if (time0Row == 1){
+               F0p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal0 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F0p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes0 = 0;
+             }
+             if (time0Row == 1){
+               F0p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes0 = 2;
              }
            }
          }
@@ -6274,6 +5324,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A1p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal1 = 0.0;
+             }
+             if (time0Row == 1){
+               A1p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal1 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A1p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes1 = 0;
+             }
+             if (time0Row == 1){
+               A1p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes1 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -6393,6 +5465,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B1p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B1p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal1 = 0.0;
+             }
+             if (time0Row == 1){
+               B1p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal1 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B1p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes1 = 0;
+             }
+             if (time0Row == 1){
+               B1p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes1 = 2;
              }
            }
          }
@@ -6517,6 +5611,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C1p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal1 = 0.0;
+             }
+             if (time0Row == 1){
+               C1p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal1 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C1p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes1 = 0;
+             }
+             if (time0Row == 1){
+               C1p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes1 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -6635,6 +5751,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D1p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D1p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal1 = 0.0;
+             }
+             if (time0Row == 1){
+               D1p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal1 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D1p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes1 = 0;
+             }
+             if (time0Row == 1){
+               D1p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes1 = 2;
              }
            }
          }
@@ -6759,6 +5897,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E1p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal1 = 0.0;
+             }
+             if (time0Row == 1){
+               E1p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal1 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E1p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes1 = 0;
+             }
+             if (time0Row == 1){
+               E1p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes1 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -6877,6 +6037,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F1p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F1p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal1 = 0.0;
+             }
+             if (time0Row == 1){
+               F1p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal1 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F1p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes1 = 0;
+             }
+             if (time0Row == 1){
+               F1p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes1 = 2;
              }
            }
          }
@@ -7004,6 +6186,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A2p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal2 = 0.0;
+             }
+             if (time0Row == 1){
+               A2p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal2 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A2p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes2 = 0;
+             }
+             if (time0Row == 1){
+               A2p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes2 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -7123,6 +6327,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B2p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B2p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal2 = 0.0;
+             }
+             if (time0Row == 1){
+               B2p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal2 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B2p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes2 = 0;
+             }
+             if (time0Row == 1){
+               B2p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes2 = 2;
              }
            }
          }
@@ -7247,6 +6473,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C2p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal2 = 0.0;
+             }
+             if (time0Row == 1){
+               C2p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal2 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C2p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes2 = 0;
+             }
+             if (time0Row == 1){
+               C2p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes2 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -7365,6 +6613,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D2p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D2p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal2 = 0.0;
+             }
+             if (time0Row == 1){
+               D2p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal2 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D2p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes2 = 0;
+             }
+             if (time0Row == 1){
+               D2p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes2 = 2;
              }
            }
          }
@@ -7489,6 +6759,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E2p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal2 = 0.0;
+             }
+             if (time0Row == 1){
+               E2p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal2 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E2p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes2 = 0;
+             }
+             if (time0Row == 1){
+               E2p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes2 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -7607,6 +6899,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F2p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F2p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal2 = 0.0;
+             }
+             if (time0Row == 1){
+               F2p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal2 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F2p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes2 = 0;
+             }
+             if (time0Row == 1){
+               F2p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes2 = 2;
              }
            }
          }
@@ -7734,6 +7048,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A3p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal3 = 0.0;
+             }
+             if (time0Row == 1){
+               A3p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal3 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A3p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes3 = 0;
+             }
+             if (time0Row == 1){
+               A3p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes3 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -7853,6 +7189,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B3p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B3p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal3 = 0.0;
+             }
+             if (time0Row == 1){
+               B3p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal3 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B3p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes3 = 0;
+             }
+             if (time0Row == 1){
+               B3p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes3 = 2;
              }
            }
          }
@@ -7977,6 +7335,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C3p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal3 = 0.0;
+             }
+             if (time0Row == 1){
+               C3p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal3 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C3p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes3 = 0;
+             }
+             if (time0Row == 1){
+               C3p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes3 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -8095,6 +7475,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D3p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D3p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal3 = 0.0;
+             }
+             if (time0Row == 1){
+               D3p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal3 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D3p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes3 = 0;
+             }
+             if (time0Row == 1){
+               D3p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes3 = 2;
              }
            }
          }
@@ -8219,6 +7621,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E3p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal3 = 0.0;
+             }
+             if (time0Row == 1){
+               E3p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal3 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E3p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes3 = 0;
+             }
+             if (time0Row == 1){
+               E3p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes3 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -8337,6 +7761,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F3p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F3p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal3 = 0.0;
+             }
+             if (time0Row == 1){
+               F3p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal3 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F3p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes3 = 0;
+             }
+             if (time0Row == 1){
+               F3p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes3 = 2;
              }
            }
          }
@@ -8464,6 +7910,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A4p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal4 = 0.0;
+             }
+             if (time0Row == 1){
+               A4p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal4 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A4p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes4 = 0;
+             }
+             if (time0Row == 1){
+               A4p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes4 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -8583,6 +8051,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B4p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B4p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal4 = 0.0;
+             }
+             if (time0Row == 1){
+               B4p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal4 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B4p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes4 = 0;
+             }
+             if (time0Row == 1){
+               B4p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes4 = 2;
              }
            }
          }
@@ -8707,6 +8197,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C4p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal4 = 0.0;
+             }
+             if (time0Row == 1){
+               C4p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal4 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C4p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes4 = 0;
+             }
+             if (time0Row == 1){
+               C4p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes4 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -8825,6 +8337,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D4p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D4p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal4 = 0.0;
+             }
+             if (time0Row == 1){
+               D4p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal4 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D4p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes4 = 0;
+             }
+             if (time0Row == 1){
+               D4p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes4 = 2;
              }
            }
          }
@@ -8949,6 +8483,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E4p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal4 = 0.0;
+             }
+             if (time0Row == 1){
+               E4p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal4 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E4p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes4 = 0;
+             }
+             if (time0Row == 1){
+               E4p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes4 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -9067,6 +8623,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F4p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F4p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal4 = 0.0;
+             }
+             if (time0Row == 1){
+               F4p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal4 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F4p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes4 = 0;
+             }
+             if (time0Row == 1){
+               F4p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes4 = 2;
              }
            }
          }
@@ -9194,6 +8772,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A5p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               A5p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A5p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               A5p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -9316,6 +8916,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B5p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               B5p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B5p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               B5p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -9434,6 +9056,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                C5p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C5p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               C5p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C5p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               C5p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
              }
            }
          }
@@ -9559,6 +9203,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D5p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               D5p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D5p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               D5p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -9680,6 +9346,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E5p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               E5p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E5p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               E5p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -9798,6 +9486,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F5p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F5p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               F5p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F5p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               F5p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
              }
            }
          }
@@ -9925,6 +9635,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A6p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal5 = 0.0;
+             }
+             if (time0Row == 1){
+               A6p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal5 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A6p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes5 = 0;
+             }
+             if (time0Row == 1){
+               A6p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes5 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -10044,6 +9776,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B6p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B6p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal6 = 0.0;
+             }
+             if (time0Row == 1){
+               B6p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal6 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B6p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes6 = 0;
+             }
+             if (time0Row == 1){
+               B6p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes6 = 2;
              }
            }
          }
@@ -10168,6 +9922,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C6p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal6 = 0.0;
+             }
+             if (time0Row == 1){
+               C6p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal6 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C6p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes6 = 0;
+             }
+             if (time0Row == 1){
+               C6p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes6 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -10286,6 +10062,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D6p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D6p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal6 = 0.0;
+             }
+             if (time0Row == 1){
+               D6p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal6 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D6p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes6 = 0;
+             }
+             if (time0Row == 1){
+               D6p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes6 = 2;
              }
            }
          }
@@ -10410,6 +10208,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E6p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal6 = 0.0;
+             }
+             if (time0Row == 1){
+               E6p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal6 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E6p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes6 = 0;
+             }
+             if (time0Row == 1){
+               E6p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes6 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -10528,6 +10348,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                F6p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F6p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal6 = 0.0;
+             }
+             if (time0Row == 1){
+               F6p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal6 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F6p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes6 = 0;
+             }
+             if (time0Row == 1){
+               F6p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes6 = 2;
              }
            }
          }
@@ -10654,6 +10496,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               A7p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal7 = 0.0;
+             }
+             if (time0Row == 1){
+               A7p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal7 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               A7p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes7 = 0;
+             }
+             if (time0Row == 1){
+               A7p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes7 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -10773,6 +10637,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                B7p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               B7p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal7 = 0.0;
+             }
+             if (time0Row == 1){
+               B7p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal7 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               B7p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes7 = 0;
+             }
+             if (time0Row == 1){
+               B7p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes7 = 2;
              }
            }
          }
@@ -10897,6 +10783,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               C7p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal7 = 0.0;
+             }
+             if (time0Row == 1){
+               C7p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal7 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               C7p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes7 = 0;
+             }
+             if (time0Row == 1){
+               C7p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes7 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -11015,6 +10923,28 @@ if (leave == 0 || propLeave == 0){
              }
              if (time0Row == 2){
                D7p.setCaptionLabel("Tr-4").setColorCaptionLabel(0);
+             }
+           }
+         }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               D7p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal7 = 0.0;
+             }
+             if (time0Row == 1){
+               D7p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal7 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               D7p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes7 = 0;
+             }
+             if (time0Row == 1){
+               D7p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes7 = 2;
              }
            }
          }
@@ -11139,6 +11069,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               E7p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal7 = 0.0;
+             }
+             if (time0Row == 1){
+               E7p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal7 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               E7p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes7 = 0;
+             }
+             if (time0Row == 1){
+               E7p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes7 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -11260,6 +11212,28 @@ if (leave == 0 || propLeave == 0){
              }
            }
          }
+         if(instPropRighty == 2){
+           if(time0Col == 0){
+             if (time0Row == 0){
+               F7p.setCaptionLabel("D_off").setColorCaptionLabel(0);
+               delayVal7 = 0.0;
+             }
+             if (time0Row == 1){
+               F7p.setCaptionLabel("D_on").setColorCaptionLabel(0);
+               delayVal7 = 0.5;
+             }
+           }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               F7p.setCaptionLabel("B_off").setColorCaptionLabel(0);
+               bitRes7 = 0;
+             }
+             if (time0Row == 1){
+               F7p.setCaptionLabel("B_on").setColorCaptionLabel(0);
+               bitRes7 = 2;
+             }
+           }
+         }
        }
        if(instPropUpward == 1){
          if(instPropRighty == 0){
@@ -11317,9 +11291,7 @@ if (leave == 0 || propLeave == 0){
        }
      }
    }
-   
  }
- 
  
  void notesCaptionHide0(){
    if(upward == 0){
@@ -15023,18 +14995,30 @@ if (leave == 0 || propLeave == 0){
            effect0.setColorForeground(color(120));
            effect0.setColorActive(color(255));
            effect0.setColorLabel(color(255));
-           effect0.setItemsPerRow(1);
-           //effect0.setSpacingColumn(50);
+           effect0.setItemsPerRow(2);
+           effect0.setSpacingColumn(70);
            effect0.setSpacingRow(50);
-           effect0.addItem("Tremolo",1);
-           effect0.addItem("Vibrato",2);
+           effect0.addItem("Delay Off",1);
+           effect0.addItem("Delay On",2);
+           effect0.addItem("BitCrush Off",3);
+           effect0.addItem("BitCrush On",4);
            ;
             if(time0Col == 0){
+             if (time0Row == 0){
                effect0.activate(0);
-           }
-            if(time0Col == 1){
+             }
+             if (time0Row == 1){
                effect0.activate(1);
+             }
            }
+           if(time0Col == 1){
+             if (time0Row == 0){
+               effect0.activate(2);
+             }
+             if (time0Row == 1){
+               effect0.activate(3);
+             }
+         }
           
         }
       }
@@ -18464,6 +18448,1778 @@ if (leave == 0 || propLeave == 0){
     }
  }
  
+ void runningthrough(){
+
+    if(patList1 == 0){
+       if(upward == 0){
+         currentNotePosition = 0;
+            cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(255) );
+            
+            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(#C6C6C6) );
+          
+           if (righty == -1){
+            if( entVal_instrument == 2 && highlight == 1 ){
+              patList2 = 0;
+              instSelect[0] = 1;
+            }
+            else{
+              //cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(0, 255, 0) );
+              cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(0, 255, 0) );
+              cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(#C6C6C6) );
+            }
+          }
+          if (righty == 0){
+            instSelect[0] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                
+                if ( synthSel == 1){
+                    
+                     notes();
+                }
+              }
+              else {
+                if(decision0[0] == 1){
+                  decision0[0] = 0;
+                }
+                else
+                  decision0[0] = 1;
+                entVal_pattern = 0;
+              }
+              
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(255) );
+          }
+        }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                  currentNotePosition = 1;   
+                  notes();
+                }
+              }
+              else {
+                if(decision0[1] == 1){
+                  decision0[1] = 0;
+                }
+                else
+                  decision0[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision0[2] == 1){
+                  decision0[2] = 0;
+                }
+                else
+                  decision0[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision0[3] == 1){
+                  decision0[3] = 0;
+                }
+                else
+                  decision0[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(#C6C6C6) );
+            }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                if(decision0[4] == 1){
+                  decision0[4] = 0;
+                }
+                else
+                  decision0[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision0[5] == 1){
+                  decision0[5] = 0;
+                }
+                else
+                  decision0[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision0[6] == 1){
+                  decision0[6] = 0;
+                }
+                else
+                  decision0[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 0).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument0.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision0[7] == 1){
+                  decision0[7] = 0;
+                }
+                else
+                  decision0[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 0).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+       
+
+        
+        if(upward == 1){
+          currentNotePosition = 1;
+            cp5.get(controlP5.Button.class, "instrument" + 0).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 0).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 0).setColorBackground( color(#C6C6C6) );
+            
+            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(#C6C6C6) );
+          
+    
+          if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[1] = 1;
+            }
+            else{
+              cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(0, 255, 0) );
+              cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
+            }
+          }
+          if (righty == 0){
+            instSelect[1] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision1[0] == 1){
+                  decision1[0] = 0;
+                }
+                else
+                  decision1[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision1[1] == 1){
+                  decision1[1] = 0;
+                }
+                else
+                  decision1[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                if(decision1[2] == 1){
+                  decision1[2] = 0;
+                }
+                else
+                  decision1[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                if(decision1[3] == 1){
+                  decision1[3] = 0;
+                }
+                else
+                  decision1[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                if(decision1[4] == 1){
+                  decision1[4] = 0;
+                }
+                else
+                  decision1[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                if(decision1[5] == 1){
+                  decision1[5] = 0;
+                }
+                else
+                  decision1[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                if(decision1[6] == 1){
+                  decision1[6] = 0;
+                }
+                else
+                  decision1[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument1.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                if(decision1[7] == 1){
+                  decision1[7] = 0;
+                }
+                else
+                  decision1[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+        
+        if(upward == 2){
+            cp5.get(controlP5.Button.class, "instrument" + 1).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 1).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 1).setColorBackground( color(#C6C6C6) );
+            
+            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(#C6C6C6) );
+            
+           if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[2] = 1;
+            }
+            else{
+            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
+            }
+           }
+          if (righty == 0){
+            instSelect[2] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                //decision2[0] = 1;
+                //entVal_pattern = 0;
+                if(decision2[0] == 1){
+                  decision2[0] = 0;
+                }
+                else
+                  decision2[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision2[1] = 1;
+                //entVal_pattern = 0;
+                if(decision2[1] == 1){
+                  decision2[1] = 0;
+                }
+                else
+                  decision2[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision2[2] = 1;
+                //entVal_pattern = 0;
+                if(decision2[2] == 1){
+                  decision2[2] = 0;
+                }
+                else
+                  decision2[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision2[3] = 1;
+                //entVal_pattern = 0;
+                if(decision2[3] == 1){
+                  decision2[3] = 0;
+                }
+                else
+                  decision2[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                     notes();
+                }
+              }
+              else {
+                //decision2[4] = 1;
+                //entVal_pattern = 0;
+                if(decision2[4] == 1){
+                  decision2[4] = 0;
+                }
+                else
+                  decision2[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                       notes();
+                }
+              }
+              else {
+                //decision2[5] = 1;
+                //entVal_pattern = 0;
+                if(decision2[5] == 1){
+                  decision2[5] = 0;
+                }
+                else
+                  decision2[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision2[6] = 1;
+                //entVal_pattern = 0;
+                if(decision2[6] == 1){
+                  decision2[6] = 0;
+                }
+                else
+                  decision2[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument2.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision2[7] = 1;
+                //entVal_pattern = 0;
+                if(decision2[7] == 1){
+                  decision2[7] = 0;
+                }
+                else
+                  decision2[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+        
+        if(upward == 3){
+            cp5.get(controlP5.Button.class, "instrument" + 2).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 2).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 2).setColorBackground( color(#C6C6C6) );
+            
+            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(#C6C6C6) );
+            
+          
+           if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[3] = 1;
+          }
+          else{
+            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
+          }
+           }
+          if (righty == 0){
+            instSelect[3] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision3[0] = 1;
+                //entVal_pattern = 0;
+                if(decision3[0] == 1){
+                  decision3[0] = 0;
+                }
+                else
+                  decision3[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision3[1] = 1;
+                //entVal_pattern = 0;
+                if(decision3[1] == 1){
+                  decision3[1] = 0;
+                }
+                else
+                  decision3[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                       notes();
+                }
+              }
+              else {
+                //decision3[2] = 1;
+                //entVal_pattern = 0;
+                if(decision3[2] == 1){
+                  decision3[2] = 0;
+                }
+                else
+                  decision3[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision3[3] = 1;
+                //entVal_pattern = 0;
+                if(decision3[3] == 1){
+                  decision3[3] = 0;
+                }
+                else
+                  decision3[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision3[4] = 1;
+                //entVal_pattern = 0;
+                if(decision3[4] == 1){
+                  decision3[4] = 0;
+                }
+                else
+                  decision3[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision3[5] = 1;
+                //entVal_pattern = 0;
+                if(decision3[5] == 1){
+                  decision3[5] = 0;
+                }
+                else
+                  decision3[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision3[6] = 1;
+                //entVal_pattern = 0;
+                if(decision3[6] == 1){
+                  decision3[6] = 0;
+                }
+                else
+                  decision3[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument3.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                       notes();
+                }
+              }
+              else {
+                //decision3[7] = 1;
+                //entVal_pattern = 0;
+                if(decision3[7] == 1){
+                  decision3[7] = 0;
+                }
+                else
+                  decision3[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+        
+        if(upward == 4){
+            cp5.get(controlP5.Button.class, "instrument" + 3).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 3).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 3).setColorBackground( color(#C6C6C6) );
+            
+            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(#C6C6C6) );
+          
+          
+          if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[4] = 1;
+          }
+          else{
+            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 0){
+            instSelect[4] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[0] = 1;
+                //entVal_pattern = 0;
+                if(decision4[0] == 1){
+                  decision4[0] = 0;
+                }
+                else
+                  decision4[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[1] = 1;
+                //entVal_pattern = 0;
+                if(decision4[1] == 1){
+                  decision4[1] = 0;
+                }
+                else
+                  decision4[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[2] = 1;
+                //entVal_pattern = 0;
+                if(decision4[2] == 1){
+                  decision4[2] = 0;
+                }
+                else
+                  decision4[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[3] = 1;
+                //entVal_pattern = 0;
+                if(decision4[3] == 1){
+                  decision4[3] = 0;
+                }
+                else
+                  decision4[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                       notes();
+                }
+              }
+              else {
+                //decision4[4] = 1;
+                //entVal_pattern = 0;
+                if(decision4[4] == 1){
+                  decision4[4] = 0;
+                }
+                else
+                  decision4[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[5] = 1;
+                //entVal_pattern = 0;
+                if(decision4[5] == 1){
+                  decision4[5] = 0;
+                }
+                else
+                  decision4[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[6] = 1;
+                //entVal_pattern = 0;
+                if(decision4[6] == 1){
+                  decision4[6] = 0;
+                }
+                else
+                  decision4[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument4.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision4[7] = 1;
+                //entVal_pattern = 0;
+                if(decision4[7] == 1){
+                  decision4[7] = 0;
+                }
+                else
+                  decision4[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+        
+        if(upward == 5){
+            cp5.get(controlP5.Button.class, "instrument" + 4).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 4).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 4).setColorBackground( color(#C6C6C6) );
+            
+            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(#C6C6C6) );
+          
+          if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[5] = 1;
+          }
+          else{
+            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 0){
+            instSelect[5] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[0] = 1;
+                //entVal_pattern = 0;
+                if(decision5[0] == 1){
+                  decision5[0] = 0;
+                }
+                else
+                  decision5[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[1] = 1;
+                //entVal_pattern = 0;
+                if(decision5[1] == 1){
+                  decision5[1] = 0;
+                }
+                else
+                  decision5[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[2] = 1;
+                //entVal_pattern = 0;
+                if(decision5[2] == 1){
+                  decision5[2] = 0;
+                }
+                else
+                  decision5[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[3] = 1;
+                //entVal_pattern = 0;
+                if(decision5[3] == 1){
+                  decision5[3] = 0;
+                }
+                else
+                  decision5[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[4] = 1;
+                //entVal_pattern = 0;
+                if(decision5[4] == 1){
+                  decision5[4] = 0;
+                }
+                else
+                  decision5[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[5] = 1;
+                //entVal_pattern = 0;
+                if(decision5[5] == 1){
+                  decision5[5] = 0;
+                }
+                else
+                  decision5[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[6] = 1;
+                //entVal_pattern = 0;
+                if(decision5[6] == 1){
+                  decision5[6] = 0;
+                }
+                else
+                  decision5[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument5.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision5[7] = 1;
+                //entVal_pattern = 0;
+                if(decision5[7] == 1){
+                  decision5[7] = 0;
+                }
+                else
+                  decision5[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+        
+        if(upward == 6){
+            cp5.get(controlP5.Button.class, "instrument" + 5).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 5).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 5).setColorBackground( color(#C6C6C6) );  
+            
+            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 7).setColorBackground( color(#C6C6C6) );
+            //cp5.get(ScrollableList.class, "Instrument" + 7).setColorBackground( color(0,45, 90) );
+          
+          if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[6] = 1;
+          }
+          else{
+            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 0){
+            instSelect[6] = 0;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[0] = 1;
+                //entVal_pattern = 0;
+                if(decision6[0] == 1){
+                  decision6[0] = 0;
+                }
+                else
+                  decision6[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[1] = 1;
+                //entVal_pattern = 0;
+                if(decision6[1] == 1){
+                  decision6[1] = 0;
+                }
+                else
+                  decision6[1] = 1;
+                entVal_pattern = 0;
+              
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[2] = 1;
+                //entVal_pattern = 0;
+                if(decision6[2] == 1){
+                  decision6[2] = 0;
+                }
+                else
+                  decision6[2] = 1;
+                entVal_pattern = 0;
+              
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[3] = 1;
+                //entVal_pattern = 0;
+                if(decision6[3] == 1){
+                  decision6[3] = 0;
+                }
+                else
+                  decision6[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[4] = 1;
+                //entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[5] = 1;
+                //entVal_pattern = 0;
+                if(decision6[5] == 1){
+                  decision6[5] = 0;
+                }
+                else
+                  decision6[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[6] = 1;
+                //entVal_pattern = 0;
+                if(decision6[6] == 1){
+                  decision6[6] = 0;
+                }
+                else
+                  decision6[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument6.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision6[7] = 1;
+                //entVal_pattern = 0;
+                if(decision6[7] == 1){
+                  decision6[7] = 0;
+                }
+                else
+                  decision6[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+        
+        if(upward == 7){
+            cp5.get(controlP5.Button.class, "instrument" + 6).setColorBackground( color(255) );
+            cp5.get(controlP5.Button.class, "A" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "B" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 6).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 6).setColorBackground( color(#C6C6C6) );
+          
+          if (righty == -1){
+            if(entVal_instrument == 2 && highlight == 1){
+              patList2 = 0;
+              instSelect[7] = 1;
+          }
+          else{
+            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 0){
+            
+            instSelect[6] = 0;
+            //close = 1;
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                       notes();
+                }
+              }
+              else {
+                //decision7[0] = 1;
+                //entVal_pattern = 0;
+                if(decision7[0] == 1){
+                  decision7[0] = 0;
+                }
+                else
+                  decision7[0] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "instrument" + 7).setColorBackground( color(255) );
+          }
+          }
+          if (righty == 1){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision7[1] = 1;
+                //entVal_pattern = 0;
+                if(decision7[1] == 1){
+                  decision7[1] = 0;
+                }
+                else
+                  decision7[1] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "A" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 2){
+            if(entVal_pattern == 1  && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision7[2] = 1;
+                //entVal_pattern = 0;
+                if(decision7[2] == 1){
+                  decision7[2] = 0;
+                }
+                else
+                  decision7[2] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "B" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 3){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision7[3] = 1;
+                //entVal_pattern = 0;
+                if(decision7[3] == 1){
+                  decision7[3] = 0;
+                }
+                else
+                  decision7[3] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "C" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 4){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision7[4] = 1;
+                //entVal_pattern = 0;
+                if(decision7[4] == 1){
+                  decision7[4] = 0;
+                }
+                else
+                  decision7[4] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "D" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 5){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision7[5] = 1;
+                //entVal_pattern = 0;
+                if(decision7[5] == 1){
+                  decision7[5] = 0;
+                }
+                else
+                  decision7[5] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "E" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 6){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                       notes();
+                }
+              }
+              else {
+                //decision7[6] = 1;
+                //entVal_pattern = 0;
+                if(decision7[6] == 1){
+                  decision7[6] = 0;
+                }
+                else
+                  decision7[6] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "F" + 7).setColorBackground( color(#C6C6C6) );
+            cp5.get(controlP5.Button.class, "H" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+          if (righty == 7){
+            if(entVal_pattern == 1 && highlight == 1){
+              if(instrument7.getLabel() == "SYNTH"){
+                if ( synthSel == 1){
+                      notes();
+                }
+              }
+              else {
+                //decision7[7] = 1;
+                //entVal_pattern = 0;
+                if(decision7[7] == 1){
+                  decision7[7] = 0;
+                }
+                else
+                  decision7[7] = 1;
+                entVal_pattern = 0;
+              }
+          }
+          else{
+            cp5.get(controlP5.Button.class, "H" + 7).setColorBackground( color(0, 255, 0) );
+            cp5.get(controlP5.Button.class, "G" + 7).setColorBackground( color(#C6C6C6) );
+          }
+          }
+        }
+       }
+ 
+ }
  
  //========================================================================================== Pattern Property functions ========================================================================================================
  
