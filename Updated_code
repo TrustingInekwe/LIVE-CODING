@@ -3662,6 +3662,7 @@ if (leave == 0 || propLeave == 0){
   print("\nhighlight ==" + highlight);
   print("\npropRighty == " + propRighty);
   print("\nproUpward == " + propUpward);
+  print("\ndecision0[0] == "+ decision0[0]);
   
   fill(255);
   textSize(15);
@@ -4334,6 +4335,7 @@ if (leave == 0 || propLeave == 0){
       //propRighty = 8, propUpward = 0, propHighlight = 0 property = 8, highlight = 0, righty = 8, currentPositionX = -1, upward = 0, redhighlight = 0,;
       if(redhighlight == 2 && propUpward >= 0 && propRighty >= 0 && propRighty < 7 && propHighlight == 1){
         propRighty--;
+        propRighty = constrain(propRighty, 0, 5);
         print("propRighty Increment =" + propRighty);
         print("\n");
       }
@@ -4596,20 +4598,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A0p.getLabel() == "P1" || A0p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A0p.getLabel() != "G0.5" || A0p.getLabel() != "G1"  || A0p.getLabel() != "G2"  || A0p.getLabel() != "G3"  || A0p.getLabel() != "G4"  || A0p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A0p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A0p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A0p.getLabel() != "SQ" || A0p.getLabel() != "SIN" || A0p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A0p.setCaptionLabel("");
-             panValue0 = 0;
            }
            if(time0Col == 1){
-             A0.setCaptionLabel("");
-             B0.setCaptionLabel("");
-             C0.setCaptionLabel("");
-             D0.setCaptionLabel("");
-             E0.setCaptionLabel("");
-             F0.setCaptionLabel("");
-             G0.setCaptionLabel("");
-             H0.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList0[i] = 0.0;
+             if (instrument0.getLabel() == "SYNTH"){
+               A0.setCaptionLabel("");
+               B0.setCaptionLabel("");
+               C0.setCaptionLabel("");
+               D0.setCaptionLabel("");
+               E0.setCaptionLabel("");
+               F0.setCaptionLabel("");
+               G0.setCaptionLabel("");
+               H0.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList0[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision0[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 0).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -4741,21 +4760,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B0p.getLabel() == "P1" || B0p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B0p.getLabel() != "G0.5" || B0p.getLabel() != "G1"  || B0p.getLabel() != "G2"  || B0p.getLabel() != "G3"  || B0p.getLabel() != "G4"  || B0p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B0p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B0p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B0p.getLabel() != "SQ" || B0p.getLabel() != "SIN" || B0p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B0p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A0.setCaptionLabel("");
-             B0.setCaptionLabel("");
-             C0.setCaptionLabel("");
-             D0.setCaptionLabel("");
-             E0.setCaptionLabel("");
-             F0.setCaptionLabel("");
-             G0.setCaptionLabel("");
-             H0.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList0[i] = 0.0;
-             decision0[i] = 0;
-             A0.setColorBackground(#c6c6c6);
+             if (instrument0.getLabel() == "SYNTH"){
+               A0.setCaptionLabel("");
+               B0.setCaptionLabel("");
+               C0.setCaptionLabel("");
+               D0.setCaptionLabel("");
+               E0.setCaptionLabel("");
+               F0.setCaptionLabel("");
+               G0.setCaptionLabel("");
+               H0.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList0[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision0[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 0).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -4886,19 +4921,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C0p.getLabel() == "P1" || C0p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C0p.getLabel() != "G0.5" || C0p.getLabel() != "G1"  || C0p.getLabel() != "G2"  || C0p.getLabel() != "G3"  || C0p.getLabel() != "G4"  || C0p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C0p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C0p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C0p.getLabel() != "SQ" || C0p.getLabel() != "SIN" || C0p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C0p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A0.setCaptionLabel("");
-             B0.setCaptionLabel("");
-             C0.setCaptionLabel("");
-             D0.setCaptionLabel("");
-             E0.setCaptionLabel("");
-             F0.setCaptionLabel("");
-             G0.setCaptionLabel("");
-             H0.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList0[i] = 0.0;
+             if (instrument0.getLabel() == "SYNTH"){
+               A0.setCaptionLabel("");
+               B0.setCaptionLabel("");
+               C0.setCaptionLabel("");
+               D0.setCaptionLabel("");
+               E0.setCaptionLabel("");
+               F0.setCaptionLabel("");
+               G0.setCaptionLabel("");
+               H0.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList0[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision0[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 0).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5029,19 +5082,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D0p.getLabel() == "P1" || D0p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D0p.getLabel() != "G0.5" || D0p.getLabel() != "G1"  || D0p.getLabel() != "G2"  || D0p.getLabel() != "G3"  || D0p.getLabel() != "G4"  || D0p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D0p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D0p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D0p.getLabel() != "SQ" || D0p.getLabel() != "SIN" || D0p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D0p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A0.setCaptionLabel("");
-             B0.setCaptionLabel("");
-             C0.setCaptionLabel("");
-             D0.setCaptionLabel("");
-             E0.setCaptionLabel("");
-             F0.setCaptionLabel("");
-             G0.setCaptionLabel("");
-             H0.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList0[i] = 0.0;
+             if (instrument0.getLabel() == "SYNTH"){
+               A0.setCaptionLabel("");
+               B0.setCaptionLabel("");
+               C0.setCaptionLabel("");
+               D0.setCaptionLabel("");
+               E0.setCaptionLabel("");
+               F0.setCaptionLabel("");
+               G0.setCaptionLabel("");
+               H0.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList0[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision0[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 0).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5172,19 +5243,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E0p.getLabel() == "P1" || E0p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E0p.getLabel() != "G0.5" || E0p.getLabel() != "G1"  || E0p.getLabel() != "G2"  || E0p.getLabel() != "G3"  || E0p.getLabel() != "G4"  || E0p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E0p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E0p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E0p.getLabel() != "SQ" || E0p.getLabel() != "SIN" || E0p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E0p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A0.setCaptionLabel("");
-             B0.setCaptionLabel("");
-             C0.setCaptionLabel("");
-             D0.setCaptionLabel("");
-             E0.setCaptionLabel("");
-             F0.setCaptionLabel("");
-             G0.setCaptionLabel("");
-             H0.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList0[i] = 0.0;
+             if (instrument0.getLabel() == "SYNTH"){
+               A0.setCaptionLabel("");
+               B0.setCaptionLabel("");
+               C0.setCaptionLabel("");
+               D0.setCaptionLabel("");
+               E0.setCaptionLabel("");
+               F0.setCaptionLabel("");
+               G0.setCaptionLabel("");
+               H0.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList0[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision0[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 0).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5315,19 +5404,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F0p.getLabel() == "P1" || F0p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F0p.getLabel() != "G0.5" || F0p.getLabel() != "G1"  || F0p.getLabel() != "G2"  || F0p.getLabel() != "G3"  || F0p.getLabel() != "G4"  || F0p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F0p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F0p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F0p.getLabel() != "SQ" || F0p.getLabel() != "SIN" || F0p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F0p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A0.setCaptionLabel("");
-             B0.setCaptionLabel("");
-             C0.setCaptionLabel("");
-             D0.setCaptionLabel("");
-             E0.setCaptionLabel("");
-             F0.setCaptionLabel("");
-             G0.setCaptionLabel("");
-             H0.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList0[i] = 0.0;
+             if (instrument0.getLabel() == "SYNTH"){
+               F0.setCaptionLabel("");
+               B0.setCaptionLabel("");
+               C0.setCaptionLabel("");
+               D0.setCaptionLabel("");
+               E0.setCaptionLabel("");
+               F0.setCaptionLabel("");
+               G0.setCaptionLabel("");
+               H0.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList0[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision0[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 0).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5461,19 +5568,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A1p.getLabel() == "P1" || A1p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A1p.getLabel() != "G0.5" || A1p.getLabel() != "G1"  || A1p.getLabel() != "G2"  || A1p.getLabel() != "G3"  || A1p.getLabel() != "G4"  || A1p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A1p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A1p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A1p.getLabel() != "SQ" || A1p.getLabel() != "SIN" || A1p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A1p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A1.setCaptionLabel("");
-             B1.setCaptionLabel("");
-             C1.setCaptionLabel("");
-             D1.setCaptionLabel("");
-             E1.setCaptionLabel("");
-             F1.setCaptionLabel("");
-             G1.setCaptionLabel("");
-             H1.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList1[i] = 0.0;
+             if(instrument1.getLabel() == "SYNTH"){
+               A1.setCaptionLabel("");
+               B1.setCaptionLabel("");
+               C1.setCaptionLabel("");
+               D1.setCaptionLabel("");
+               E1.setCaptionLabel("");
+               F1.setCaptionLabel("");
+               G1.setCaptionLabel("");
+               H1.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList1[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision1[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 1).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5605,19 +5730,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B1p.getLabel() == "P1" || B1p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B1p.getLabel() != "G0.5" || B1p.getLabel() != "G1"  || B1p.getLabel() != "G2"  || B1p.getLabel() != "G3"  || B1p.getLabel() != "G4"  || B1p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B1p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B1p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B1p.getLabel() != "SQ" || B1p.getLabel() != "SIN" || B1p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B1p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A1.setCaptionLabel("");
-             B1.setCaptionLabel("");
-             C1.setCaptionLabel("");
-             D1.setCaptionLabel("");
-             E1.setCaptionLabel("");
-             F1.setCaptionLabel("");
-             G1.setCaptionLabel("");
-             H1.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList1[i] = 0.0;
+             if (instrument1.getLabel() == "SYNTH"){
+               A1.setCaptionLabel("");
+               B1.setCaptionLabel("");
+               C1.setCaptionLabel("");
+               D1.setCaptionLabel("");
+               E1.setCaptionLabel("");
+               F1.setCaptionLabel("");
+               G1.setCaptionLabel("");
+               H1.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList1[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision1[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 1).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5748,19 +5891,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C1p.getLabel() == "P1" || C1p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C1p.getLabel() != "G0.5" || C1p.getLabel() != "G1"  || C1p.getLabel() != "G2"  || C1p.getLabel() != "G3"  || C1p.getLabel() != "G4"  || C1p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C1p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C1p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C1p.getLabel() != "SQ" || C1p.getLabel() != "SIN" || C1p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C1p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A1.setCaptionLabel("");
-             B1.setCaptionLabel("");
-             C1.setCaptionLabel("");
-             D1.setCaptionLabel("");
-             E1.setCaptionLabel("");
-             F1.setCaptionLabel("");
-             G1.setCaptionLabel("");
-             H1.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList1[i] = 0.0;
+             if (instrument1.getLabel() == "SYNTH"){
+               A1.setCaptionLabel("");
+               B1.setCaptionLabel("");
+               C1.setCaptionLabel("");
+               D1.setCaptionLabel("");
+               E1.setCaptionLabel("");
+               F1.setCaptionLabel("");
+               G1.setCaptionLabel("");
+               H1.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList1[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision1[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 1).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -5891,19 +6052,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D1p.getLabel() == "P1" || D1p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D1p.getLabel() != "G0.5" || D1p.getLabel() != "G1"  || D1p.getLabel() != "G2"  || D1p.getLabel() != "G3"  || D1p.getLabel() != "G4"  || D1p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D1p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D1p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D1p.getLabel() != "SQ" || D1p.getLabel() != "SIN" || D1p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D1p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A1.setCaptionLabel("");
-             B1.setCaptionLabel("");
-             C1.setCaptionLabel("");
-             D1.setCaptionLabel("");
-             E1.setCaptionLabel("");
-             F1.setCaptionLabel("");
-             G1.setCaptionLabel("");
-             H1.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList1[i] = 0.0;
+             if (instrument1.getLabel() == "SYNTH"){
+               A1.setCaptionLabel("");
+               B1.setCaptionLabel("");
+               C1.setCaptionLabel("");
+               D1.setCaptionLabel("");
+               E1.setCaptionLabel("");
+               F1.setCaptionLabel("");
+               G1.setCaptionLabel("");
+               H1.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList1[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision1[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 1).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6034,19 +6213,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E1p.getLabel() == "P1" || E1p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E1p.getLabel() != "G0.5" || E1p.getLabel() != "G1"  || E1p.getLabel() != "G2"  || E1p.getLabel() != "G3"  || E1p.getLabel() != "G4"  || E1p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E1p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E1p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E1p.getLabel() != "SQ" || E1p.getLabel() != "SIN" || E1p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E1p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A1.setCaptionLabel("");
-             B1.setCaptionLabel("");
-             C1.setCaptionLabel("");
-             D1.setCaptionLabel("");
-             E1.setCaptionLabel("");
-             F1.setCaptionLabel("");
-             G1.setCaptionLabel("");
-             H1.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList1[i] = 0.0;
+             if (instrument1.getLabel() == "SYNTH"){
+               A1.setCaptionLabel("");
+               B1.setCaptionLabel("");
+               C1.setCaptionLabel("");
+               D1.setCaptionLabel("");
+               E1.setCaptionLabel("");
+               F1.setCaptionLabel("");
+               G1.setCaptionLabel("");
+               H1.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList1[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision1[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 1).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6177,19 +6374,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F1p.getLabel() == "P1" || F1p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F1p.getLabel() != "G0.5" || F1p.getLabel() != "G1"  || F1p.getLabel() != "G2"  || F1p.getLabel() != "G3"  || F1p.getLabel() != "G4"  || F1p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F1p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F1p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F1p.getLabel() != "SQ" || F1p.getLabel() != "SIN" || F1p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F1p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A1.setCaptionLabel("");
-             B1.setCaptionLabel("");
-             C1.setCaptionLabel("");
-             D1.setCaptionLabel("");
-             E1.setCaptionLabel("");
-             F1.setCaptionLabel("");
-             G1.setCaptionLabel("");
-             H1.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-             instList1[i] = 0.0;
+             if (instrument1.getLabel() == "SYNTH"){
+               A1.setCaptionLabel("");
+               B1.setCaptionLabel("");
+               C1.setCaptionLabel("");
+               D1.setCaptionLabel("");
+               E1.setCaptionLabel("");
+               F1.setCaptionLabel("");
+               G1.setCaptionLabel("");
+               H1.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList1[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision1[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 1).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6323,19 +6538,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A2p.getLabel() == "P1" || A2p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A2p.getLabel() != "G0.5" || A2p.getLabel() != "G1"  || A2p.getLabel() != "G2"  || A2p.getLabel() != "G3"  || A2p.getLabel() != "G4"  || A2p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A2p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A2p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A2p.getLabel() != "SQ" || A2p.getLabel() != "SIN" || A2p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A2p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A2.setCaptionLabel("");
-             B2.setCaptionLabel("");
-             C2.setCaptionLabel("");
-             D2.setCaptionLabel("");
-             E2.setCaptionLabel("");
-             F2.setCaptionLabel("");
-             G2.setCaptionLabel("");
-             H2.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList2[i] = 0.0;
+             if (instrument2.getLabel() == "SYNTH"){
+               A2.setCaptionLabel("");
+               B2.setCaptionLabel("");
+               C2.setCaptionLabel("");
+               D2.setCaptionLabel("");
+               E2.setCaptionLabel("");
+               F2.setCaptionLabel("");
+               G2.setCaptionLabel("");
+               H2.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList2[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision2[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 2).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6467,19 +6700,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B2p.getLabel() == "P1" || B2p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B2p.getLabel() != "G0.5" || B2p.getLabel() != "G1"  || B2p.getLabel() != "G2"  || B2p.getLabel() != "G3"  || B2p.getLabel() != "G4"  || B2p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B2p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B2p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B2p.getLabel() != "SQ" || B2p.getLabel() != "SIN" || B2p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B2p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A2.setCaptionLabel("");
-             B2.setCaptionLabel("");
-             C2.setCaptionLabel("");
-             D2.setCaptionLabel("");
-             E2.setCaptionLabel("");
-             F2.setCaptionLabel("");
-             G2.setCaptionLabel("");
-             H2.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList2[i] = 0.0;
+             if (instrument2.getLabel() == "SYNTH"){
+               A2.setCaptionLabel("");
+               B2.setCaptionLabel("");
+               C2.setCaptionLabel("");
+               D2.setCaptionLabel("");
+               E2.setCaptionLabel("");
+               F2.setCaptionLabel("");
+               G2.setCaptionLabel("");
+               H2.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList2[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision2[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 2).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6610,19 +6861,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C2p.getLabel() == "P1" || C2p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C2p.getLabel() != "G0.5" || C2p.getLabel() != "G1"  || C2p.getLabel() != "G2"  || C2p.getLabel() != "G3"  || C2p.getLabel() != "G4"  || C2p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C2p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C2p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C2p.getLabel() != "SQ" || C2p.getLabel() != "SIN" || C2p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C2p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A2.setCaptionLabel("");
-             B2.setCaptionLabel("");
-             C2.setCaptionLabel("");
-             D2.setCaptionLabel("");
-             E2.setCaptionLabel("");
-             F2.setCaptionLabel("");
-             G2.setCaptionLabel("");
-             H2.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList2[i] = 0.0;
+             if (instrument2.getLabel() == "SYNTH"){
+               A2.setCaptionLabel("");
+               B2.setCaptionLabel("");
+               C2.setCaptionLabel("");
+               D2.setCaptionLabel("");
+               E2.setCaptionLabel("");
+               F2.setCaptionLabel("");
+               G2.setCaptionLabel("");
+               H2.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList2[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision2[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 2).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6753,19 +7022,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D2p.getLabel() == "P1" || D2p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D2p.getLabel() != "G0.5" || D2p.getLabel() != "G1"  || D2p.getLabel() != "G2"  || D2p.getLabel() != "G3"  || D2p.getLabel() != "G4"  || D2p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D2p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D2p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D2p.getLabel() != "SQ" || D2p.getLabel() != "SIN" || D2p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D2p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A2.setCaptionLabel("");
-             B2.setCaptionLabel("");
-             C2.setCaptionLabel("");
-             D2.setCaptionLabel("");
-             E2.setCaptionLabel("");
-             F2.setCaptionLabel("");
-             G2.setCaptionLabel("");
-             H2.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList2[i] = 0.0;
+             if (instrument2.getLabel() == "SYNTH"){
+               A2.setCaptionLabel("");
+               B2.setCaptionLabel("");
+               C2.setCaptionLabel("");
+               D2.setCaptionLabel("");
+               E2.setCaptionLabel("");
+               F2.setCaptionLabel("");
+               G2.setCaptionLabel("");
+               H2.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList2[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision2[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 2).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -6896,19 +7183,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E2p.getLabel() == "P1" || E2p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E2p.getLabel() != "G0.5" || E2p.getLabel() != "G1"  || E2p.getLabel() != "G2"  || E2p.getLabel() != "G3"  || E2p.getLabel() != "G4"  || E2p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E2p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E2p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E2p.getLabel() != "SQ" || E2p.getLabel() != "SIN" || E2p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E2p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A2.setCaptionLabel("");
-             B2.setCaptionLabel("");
-             C2.setCaptionLabel("");
-             D2.setCaptionLabel("");
-             E2.setCaptionLabel("");
-             F2.setCaptionLabel("");
-             G2.setCaptionLabel("");
-             H2.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList2[i] = 0.0;
+             if (instrument2.getLabel() == "SYNTH"){
+               A2.setCaptionLabel("");
+               B2.setCaptionLabel("");
+               C2.setCaptionLabel("");
+               D2.setCaptionLabel("");
+               E2.setCaptionLabel("");
+               F2.setCaptionLabel("");
+               G2.setCaptionLabel("");
+               H2.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList2[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision2[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 2).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7039,19 +7344,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F2p.getLabel() == "P1" || F2p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F2p.getLabel() != "G0.5" || F2p.getLabel() != "G1"  || F2p.getLabel() != "G2"  || F2p.getLabel() != "G3"  || F2p.getLabel() != "G4"  || F2p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F2p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F2p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F2p.getLabel() != "SQ" || F2p.getLabel() != "SIN" || F2p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F2p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A2.setCaptionLabel("");
-             B2.setCaptionLabel("");
-             C2.setCaptionLabel("");
-             D2.setCaptionLabel("");
-             E2.setCaptionLabel("");
-             F2.setCaptionLabel("");
-             G2.setCaptionLabel("");
-             H2.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList2[i] = 0.0;
+             if (instrument2.getLabel() == "SYNTH"){
+               A2.setCaptionLabel("");
+               B2.setCaptionLabel("");
+               C2.setCaptionLabel("");
+               D2.setCaptionLabel("");
+               E2.setCaptionLabel("");
+               F2.setCaptionLabel("");
+               G2.setCaptionLabel("");
+               H2.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList2[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision2[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 2).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7185,19 +7508,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A3p.getLabel() == "P1" || A3p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A3p.getLabel() != "G0.5" || A3p.getLabel() != "G1"  || A3p.getLabel() != "G2"  || A3p.getLabel() != "G3"  || A3p.getLabel() != "G4"  || A3p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A3p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A3p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A3p.getLabel() != "SQ" || A3p.getLabel() != "SIN" || A3p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A3p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A3.setCaptionLabel("");
-             B3.setCaptionLabel("");
-             C3.setCaptionLabel("");
-             D3.setCaptionLabel("");
-             E3.setCaptionLabel("");
-             F3.setCaptionLabel("");
-             G3.setCaptionLabel("");
-             H3.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList3[i] = 0.0;
+             if (instrument3.getLabel() == "SYNTH"){
+               A3.setCaptionLabel("");
+               B3.setCaptionLabel("");
+               C3.setCaptionLabel("");
+               D3.setCaptionLabel("");
+               E3.setCaptionLabel("");
+               F3.setCaptionLabel("");
+               G3.setCaptionLabel("");
+               H3.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList3[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision3[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 3).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7329,19 +7670,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B3p.getLabel() == "P1" || B3p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B3p.getLabel() != "G0.5" || B3p.getLabel() != "G1"  || B3p.getLabel() != "G2"  || B3p.getLabel() != "G3"  || B3p.getLabel() != "G4"  || B3p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B3p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B3p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B3p.getLabel() != "SQ" || B3p.getLabel() != "SIN" || B3p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B3p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A3.setCaptionLabel("");
-             B3.setCaptionLabel("");
-             C3.setCaptionLabel("");
-             D3.setCaptionLabel("");
-             E3.setCaptionLabel("");
-             F3.setCaptionLabel("");
-             G3.setCaptionLabel("");
-             H3.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList3[i] = 0.0;
+             if (instrument3.getLabel() == "SYNTH"){
+               A3.setCaptionLabel("");
+               B3.setCaptionLabel("");
+               C3.setCaptionLabel("");
+               D3.setCaptionLabel("");
+               E3.setCaptionLabel("");
+               F3.setCaptionLabel("");
+               G3.setCaptionLabel("");
+               H3.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList3[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision3[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 3).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7472,19 +7831,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C3p.getLabel() == "P1" || C3p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C3p.getLabel() != "G0.5" || C3p.getLabel() != "G1"  || C3p.getLabel() != "G2"  || C3p.getLabel() != "G3"  || C3p.getLabel() != "G4"  || C3p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C3p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C3p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C3p.getLabel() != "SQ" || C3p.getLabel() != "SIN" || C3p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C3p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A3.setCaptionLabel("");
-             B3.setCaptionLabel("");
-             C3.setCaptionLabel("");
-             D3.setCaptionLabel("");
-             E3.setCaptionLabel("");
-             F3.setCaptionLabel("");
-             G3.setCaptionLabel("");
-             H3.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList3[i] = 0.0;
+             if (instrument3.getLabel() == "SYNTH"){
+               A3.setCaptionLabel("");
+               B3.setCaptionLabel("");
+               C3.setCaptionLabel("");
+               D3.setCaptionLabel("");
+               E3.setCaptionLabel("");
+               F3.setCaptionLabel("");
+               G3.setCaptionLabel("");
+               H3.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList3[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision3[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 3).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7615,19 +7992,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D3p.getLabel() == "P1" || D3p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D3p.getLabel() != "G0.5" || D3p.getLabel() != "G1"  || D3p.getLabel() != "G2"  || D3p.getLabel() != "G3"  || D3p.getLabel() != "G4"  || D3p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D3p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D3p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D3p.getLabel() != "SQ" || D3p.getLabel() != "SIN" || D3p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D3p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A3.setCaptionLabel("");
-             B3.setCaptionLabel("");
-             C3.setCaptionLabel("");
-             D3.setCaptionLabel("");
-             E3.setCaptionLabel("");
-             F3.setCaptionLabel("");
-             G3.setCaptionLabel("");
-             H3.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList3[i] = 0.0;
+             if (instrument3.getLabel() == "SYNTH"){
+               A3.setCaptionLabel("");
+               B3.setCaptionLabel("");
+               C3.setCaptionLabel("");
+               D3.setCaptionLabel("");
+               E3.setCaptionLabel("");
+               F3.setCaptionLabel("");
+               G3.setCaptionLabel("");
+               H3.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList3[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision3[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 3).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7758,19 +8153,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E3p.getLabel() == "P1" || E3p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E3p.getLabel() != "G0.5" || E3p.getLabel() != "G1"  || E3p.getLabel() != "G2"  || E3p.getLabel() != "G3"  || E3p.getLabel() != "G4"  || E3p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E3p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E3p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E3p.getLabel() != "SQ" || E3p.getLabel() != "SIN" || E3p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E3p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A3.setCaptionLabel("");
-             B3.setCaptionLabel("");
-             C3.setCaptionLabel("");
-             D3.setCaptionLabel("");
-             E3.setCaptionLabel("");
-             F3.setCaptionLabel("");
-             G3.setCaptionLabel("");
-             H3.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList3[i] = 0.0;
+             if (instrument3.getLabel() == "SYNTH"){
+               A3.setCaptionLabel("");
+               B3.setCaptionLabel("");
+               C3.setCaptionLabel("");
+               D3.setCaptionLabel("");
+               E3.setCaptionLabel("");
+               F3.setCaptionLabel("");
+               G3.setCaptionLabel("");
+               H3.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList3[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision3[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 3).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -7901,19 +8314,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F3p.getLabel() == "P1" || F3p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F3p.getLabel() != "G0.5" || F3p.getLabel() != "G1"  || F3p.getLabel() != "G2"  || F3p.getLabel() != "G3"  || F3p.getLabel() != "G4"  || F3p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F3p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F3p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F3p.getLabel() != "SQ" || F3p.getLabel() != "SIN" || F3p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F3p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A3.setCaptionLabel("");
-             B3.setCaptionLabel("");
-             C3.setCaptionLabel("");
-             D3.setCaptionLabel("");
-             E3.setCaptionLabel("");
-             F3.setCaptionLabel("");
-             G3.setCaptionLabel("");
-             H3.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList3[i] = 0.0;
+             if (instrument3.getLabel() == "SYNTH"){
+               A3.setCaptionLabel("");
+               B3.setCaptionLabel("");
+               C3.setCaptionLabel("");
+               D3.setCaptionLabel("");
+               E3.setCaptionLabel("");
+               F3.setCaptionLabel("");
+               G3.setCaptionLabel("");
+               H3.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList3[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision3[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 3).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8047,19 +8478,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A4p.getLabel() == "P1" || A4p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A4p.getLabel() != "G0.5" || A4p.getLabel() != "G1"  || A4p.getLabel() != "G2"  || A4p.getLabel() != "G3"  || A4p.getLabel() != "G4"  || A4p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A4p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A4p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A4p.getLabel() != "SQ" || A4p.getLabel() != "SIN" || A4p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A4p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A4.setCaptionLabel("");
-             B4.setCaptionLabel("");
-             C4.setCaptionLabel("");
-             D4.setCaptionLabel("");
-             E4.setCaptionLabel("");
-             F4.setCaptionLabel("");
-             G4.setCaptionLabel("");
-             H4.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList4[i] = 0.0;
+             if (instrument4.getLabel() == "SYNTH"){
+               A4.setCaptionLabel("");
+               B4.setCaptionLabel("");
+               C4.setCaptionLabel("");
+               D4.setCaptionLabel("");
+               E4.setCaptionLabel("");
+               F4.setCaptionLabel("");
+               G4.setCaptionLabel("");
+               H4.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList4[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision4[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 4).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8191,19 +8640,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B4p.getLabel() == "P1" || B4p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B4p.getLabel() != "G0.5" || B4p.getLabel() != "G1"  || B4p.getLabel() != "G2"  || B4p.getLabel() != "G3"  || B4p.getLabel() != "G4"  || B4p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B4p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B4p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B4p.getLabel() != "SQ" || B4p.getLabel() != "SIN" || B4p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B4p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A4.setCaptionLabel("");
-             B4.setCaptionLabel("");
-             C4.setCaptionLabel("");
-             D4.setCaptionLabel("");
-             E4.setCaptionLabel("");
-             F4.setCaptionLabel("");
-             G4.setCaptionLabel("");
-             H4.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList4[i] = 0.0;
+             if (instrument4.getLabel() == "SYNTH"){
+               A4.setCaptionLabel("");
+               B4.setCaptionLabel("");
+               C4.setCaptionLabel("");
+               D4.setCaptionLabel("");
+               E4.setCaptionLabel("");
+               F4.setCaptionLabel("");
+               G4.setCaptionLabel("");
+               H4.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList4[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision4[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 4).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8334,19 +8801,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C4p.getLabel() == "P1" || C4p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C4p.getLabel() != "G0.5" || C4p.getLabel() != "G1"  || C4p.getLabel() != "G2"  || C4p.getLabel() != "G3"  || C4p.getLabel() != "G4"  || C4p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C4p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C4p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C4p.getLabel() != "SQ" || C4p.getLabel() != "SIN" || C4p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C4p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A4.setCaptionLabel("");
-             B4.setCaptionLabel("");
-             C4.setCaptionLabel("");
-             D4.setCaptionLabel("");
-             E4.setCaptionLabel("");
-             F4.setCaptionLabel("");
-             G4.setCaptionLabel("");
-             H4.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList4[i] = 0.0;
+             if (instrument4.getLabel() == "SYNTH"){
+               A4.setCaptionLabel("");
+               B4.setCaptionLabel("");
+               C4.setCaptionLabel("");
+               D4.setCaptionLabel("");
+               E4.setCaptionLabel("");
+               F4.setCaptionLabel("");
+               G4.setCaptionLabel("");
+               H4.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList4[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision4[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 4).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8477,19 +8962,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D4p.getLabel() == "P1" || D4p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D4p.getLabel() != "G0.5" || D4p.getLabel() != "G1"  || D4p.getLabel() != "G2"  || D4p.getLabel() != "G3"  || D4p.getLabel() != "G4"  || D4p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D4p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D4p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D4p.getLabel() != "SQ" || D4p.getLabel() != "SIN" || D4p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D4p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A4.setCaptionLabel("");
-             B4.setCaptionLabel("");
-             C4.setCaptionLabel("");
-             D4.setCaptionLabel("");
-             E4.setCaptionLabel("");
-             F4.setCaptionLabel("");
-             G4.setCaptionLabel("");
-             H4.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList4[i] = 0.0;
+             if (instrument4.getLabel() == "SYNTH"){
+               A4.setCaptionLabel("");
+               B4.setCaptionLabel("");
+               C4.setCaptionLabel("");
+               D4.setCaptionLabel("");
+               E4.setCaptionLabel("");
+               F4.setCaptionLabel("");
+               G4.setCaptionLabel("");
+               H4.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList4[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision4[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 4).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8620,19 +9123,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E4p.getLabel() == "P1" || E4p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E4p.getLabel() != "G0.5" || E4p.getLabel() != "G1"  || E4p.getLabel() != "G2"  || E4p.getLabel() != "G3"  || E4p.getLabel() != "G4"  || E4p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E4p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E4p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E4p.getLabel() != "SQ" || E4p.getLabel() != "SIN" || E4p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E4p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A4.setCaptionLabel("");
-             B4.setCaptionLabel("");
-             C4.setCaptionLabel("");
-             D4.setCaptionLabel("");
-             E4.setCaptionLabel("");
-             F4.setCaptionLabel("");
-             G4.setCaptionLabel("");
-             H4.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList4[i] = 0.0;
+             if (instrument4.getLabel() == "SYNTH"){
+               A4.setCaptionLabel("");
+               B4.setCaptionLabel("");
+               C4.setCaptionLabel("");
+               D4.setCaptionLabel("");
+               E4.setCaptionLabel("");
+               F4.setCaptionLabel("");
+               G4.setCaptionLabel("");
+               H4.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList4[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision4[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 4).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8763,19 +9284,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F4p.getLabel() == "P1" || F4p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F4p.getLabel() != "G0.5" || F4p.getLabel() != "G1"  || F4p.getLabel() != "G2"  || F4p.getLabel() != "G3"  || F4p.getLabel() != "G4"  || F4p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F4p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F4p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F4p.getLabel() != "SQ" || F4p.getLabel() != "SIN" || F4p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F4p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A4.setCaptionLabel("");
-             B4.setCaptionLabel("");
-             C4.setCaptionLabel("");
-             D4.setCaptionLabel("");
-             E4.setCaptionLabel("");
-             F4.setCaptionLabel("");
-             G4.setCaptionLabel("");
-             H4.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList4[i] = 0.0;
+             if (instrument4.getLabel() == "SYNTH"){
+               A4.setCaptionLabel("");
+               B4.setCaptionLabel("");
+               C4.setCaptionLabel("");
+               D4.setCaptionLabel("");
+               E4.setCaptionLabel("");
+               F4.setCaptionLabel("");
+               G4.setCaptionLabel("");
+               H4.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList4[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision4[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 4).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -8909,19 +9448,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A5p.getLabel() == "P1" || A5p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A5p.getLabel() != "G0.5" || A5p.getLabel() != "G1"  || A5p.getLabel() != "G2"  || A5p.getLabel() != "G3"  || A5p.getLabel() != "G4"  || A5p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A5p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A5p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A5p.getLabel() != "SQ" || A5p.getLabel() != "SIN" || A5p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A5p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A5.setCaptionLabel("");
-             B5.setCaptionLabel("");
-             C5.setCaptionLabel("");
-             D5.setCaptionLabel("");
-             E5.setCaptionLabel("");
-             F5.setCaptionLabel("");
-             G5.setCaptionLabel("");
-             H5.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList5[i] = 0.0;
+             if (instrument5.getLabel() == "SYNTH"){
+               A5.setCaptionLabel("");
+               B5.setCaptionLabel("");
+               C5.setCaptionLabel("");
+               D5.setCaptionLabel("");
+               E5.setCaptionLabel("");
+               F5.setCaptionLabel("");
+               G5.setCaptionLabel("");
+               H5.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList5[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision5[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 5).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9053,19 +9610,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B5p.getLabel() == "P1" || B5p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B5p.getLabel() != "G0.5" || B5p.getLabel() != "G1"  || B5p.getLabel() != "G2"  || B5p.getLabel() != "G3"  || B5p.getLabel() != "G4"  || B5p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B5p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B5p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B5p.getLabel() != "SQ" || B5p.getLabel() != "SIN" || B5p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B5p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A5.setCaptionLabel("");
-             B5.setCaptionLabel("");
-             C5.setCaptionLabel("");
-             D5.setCaptionLabel("");
-             E5.setCaptionLabel("");
-             F5.setCaptionLabel("");
-             G5.setCaptionLabel("");
-             H5.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList5[i] = 0.0;
+             if (instrument5.getLabel() == "SYNTH"){
+               A5.setCaptionLabel("");
+               B5.setCaptionLabel("");
+               C5.setCaptionLabel("");
+               D5.setCaptionLabel("");
+               E5.setCaptionLabel("");
+               F5.setCaptionLabel("");
+               G5.setCaptionLabel("");
+               H5.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList5[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision5[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 5).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9197,19 +9772,37 @@ if (leave == 0 || propLeave == 0){
          
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C5p.getLabel() == "P1" || C5p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C5p.getLabel() != "G0.5" || C5p.getLabel() != "G1"  || C5p.getLabel() != "G2"  || C5p.getLabel() != "G3"  || C5p.getLabel() != "G4"  || C5p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C5p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C5p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C5p.getLabel() != "SQ" || C5p.getLabel() != "SIN" || C5p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C5p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A5.setCaptionLabel("");
-             B5.setCaptionLabel("");
-             C5.setCaptionLabel("");
-             D5.setCaptionLabel("");
-             E5.setCaptionLabel("");
-             F5.setCaptionLabel("");
-             G5.setCaptionLabel("");
-             H5.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList5[i] = 0.0;
+             if (instrument5.getLabel() == "SYNTH"){
+               A5.setCaptionLabel("");
+               B5.setCaptionLabel("");
+               C5.setCaptionLabel("");
+               D5.setCaptionLabel("");
+               E5.setCaptionLabel("");
+               F5.setCaptionLabel("");
+               G5.setCaptionLabel("");
+               H5.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList5[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision5[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 5).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9340,19 +9933,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D5p.getLabel() == "P1" || D5p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D5p.getLabel() != "G0.5" || D5p.getLabel() != "G1"  || D5p.getLabel() != "G2"  || D5p.getLabel() != "G3"  || D5p.getLabel() != "G4"  || D5p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D5p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D5p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D5p.getLabel() != "SQ" || D5p.getLabel() != "SIN" || D5p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D5p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A5.setCaptionLabel("");
-             B5.setCaptionLabel("");
-             C5.setCaptionLabel("");
-             D5.setCaptionLabel("");
-             E5.setCaptionLabel("");
-             F5.setCaptionLabel("");
-             G5.setCaptionLabel("");
-             H5.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList5[i] = 0.0;
+            if (instrument5.getLabel() == "SYNTH"){
+               A5.setCaptionLabel("");
+               B5.setCaptionLabel("");
+               C5.setCaptionLabel("");
+               D5.setCaptionLabel("");
+               E5.setCaptionLabel("");
+               F5.setCaptionLabel("");
+               G5.setCaptionLabel("");
+               H5.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList5[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision5[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 5).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9483,19 +10094,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E5p.getLabel() == "P1" || E5p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E5p.getLabel() != "G0.5" || E5p.getLabel() != "G1"  || E5p.getLabel() != "G2"  || E5p.getLabel() != "G3"  || E5p.getLabel() != "G4"  || E5p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E5p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E5p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E5p.getLabel() != "SQ" || E5p.getLabel() != "SIN" || E5p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E5p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A5.setCaptionLabel("");
-             B5.setCaptionLabel("");
-             C5.setCaptionLabel("");
-             D5.setCaptionLabel("");
-             E5.setCaptionLabel("");
-             F5.setCaptionLabel("");
-             G5.setCaptionLabel("");
-             H5.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList5[i] = 0.0;
+             if (instrument5.getLabel() == "SYNTH"){
+               A5.setCaptionLabel("");
+               B5.setCaptionLabel("");
+               C5.setCaptionLabel("");
+               D5.setCaptionLabel("");
+               E5.setCaptionLabel("");
+               F5.setCaptionLabel("");
+               G5.setCaptionLabel("");
+               H5.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList5[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision5[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 5).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9626,19 +10255,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F5p.getLabel() == "P1" || F5p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F5p.getLabel() != "G0.5" || F5p.getLabel() != "G1"  || F5p.getLabel() != "G2"  || F5p.getLabel() != "G3"  || F5p.getLabel() != "G4"  || F5p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F5p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F5p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F5p.getLabel() != "SQ" || F5p.getLabel() != "SIN" || F5p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F5p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A5.setCaptionLabel("");
-             B5.setCaptionLabel("");
-             C5.setCaptionLabel("");
-             D5.setCaptionLabel("");
-             E5.setCaptionLabel("");
-             F5.setCaptionLabel("");
-             G5.setCaptionLabel("");
-             H5.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList5[i] = 0.0;
+             if (instrument5.getLabel() == "SYNTH"){
+               A5.setCaptionLabel("");
+               B5.setCaptionLabel("");
+               C5.setCaptionLabel("");
+               D5.setCaptionLabel("");
+               E5.setCaptionLabel("");
+               F5.setCaptionLabel("");
+               G5.setCaptionLabel("");
+               H5.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList5[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision5[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 5).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9772,19 +10419,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A6p.getLabel() == "P1" || A6p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A6p.getLabel() != "G0.5" || A6p.getLabel() != "G1"  || A6p.getLabel() != "G2"  || A6p.getLabel() != "G3"  || A6p.getLabel() != "G4"  || A6p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A6p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A6p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A6p.getLabel() != "SQ" || A6p.getLabel() != "SIN" || A6p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A6p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A6.setCaptionLabel("");
-             B6.setCaptionLabel("");
-             C6.setCaptionLabel("");
-             D6.setCaptionLabel("");
-             E6.setCaptionLabel("");
-             F6.setCaptionLabel("");
-             G6.setCaptionLabel("");
-             H6.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList6[i] = 0.0;
+             if (instrument6.getLabel() == "SYNTH"){
+               A6.setCaptionLabel("");
+               B6.setCaptionLabel("");
+               C6.setCaptionLabel("");
+               D6.setCaptionLabel("");
+               E6.setCaptionLabel("");
+               F6.setCaptionLabel("");
+               G6.setCaptionLabel("");
+               H6.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList6[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision6[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 6).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -9916,19 +10581,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B6p.getLabel() == "P1" || B6p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B6p.getLabel() != "G0.5" || B6p.getLabel() != "G1"  || B6p.getLabel() != "G2"  || B6p.getLabel() != "G3"  || B6p.getLabel() != "G4"  || B6p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B6p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B6p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B6p.getLabel() != "SQ" || B6p.getLabel() != "SIN" || B6p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B6p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A6.setCaptionLabel("");
-             B6.setCaptionLabel("");
-             C6.setCaptionLabel("");
-             D6.setCaptionLabel("");
-             E6.setCaptionLabel("");
-             F6.setCaptionLabel("");
-             G6.setCaptionLabel("");
-             H6.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList6[i] = 0.0;
+             if (instrument6.getLabel() == "SYNTH"){
+               A6.setCaptionLabel("");
+               B6.setCaptionLabel("");
+               C6.setCaptionLabel("");
+               D6.setCaptionLabel("");
+               E6.setCaptionLabel("");
+               F6.setCaptionLabel("");
+               G6.setCaptionLabel("");
+               H6.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList6[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision6[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 6).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10059,19 +10742,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C6p.getLabel() == "P1" || C6p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C6p.getLabel() != "G0.5" || C6p.getLabel() != "G1"  || C6p.getLabel() != "G2"  || C6p.getLabel() != "G3"  || C6p.getLabel() != "G4"  || C6p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C6p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C6p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C6p.getLabel() != "SQ" || C6p.getLabel() != "SIN" || C6p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C6p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A6.setCaptionLabel("");
-             B6.setCaptionLabel("");
-             C6.setCaptionLabel("");
-             D6.setCaptionLabel("");
-             E6.setCaptionLabel("");
-             F6.setCaptionLabel("");
-             G6.setCaptionLabel("");
-             H6.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList6[i] = 0.0;
+             if (instrument6.getLabel() == "SYNTH"){
+               A6.setCaptionLabel("");
+               B6.setCaptionLabel("");
+               C6.setCaptionLabel("");
+               D6.setCaptionLabel("");
+               E6.setCaptionLabel("");
+               F6.setCaptionLabel("");
+               G6.setCaptionLabel("");
+               H6.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList6[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision6[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 6).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10202,19 +10903,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D6p.getLabel() == "P1" || D6p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D6p.getLabel() != "G0.5" || D6p.getLabel() != "G1"  || D6p.getLabel() != "G2"  || D6p.getLabel() != "G3"  || D6p.getLabel() != "G4"  || D6p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D6p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D6p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D6p.getLabel() != "SQ" || D6p.getLabel() != "SIN" || D6p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D6p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A6.setCaptionLabel("");
-             B6.setCaptionLabel("");
-             C6.setCaptionLabel("");
-             D6.setCaptionLabel("");
-             E6.setCaptionLabel("");
-             F6.setCaptionLabel("");
-             G6.setCaptionLabel("");
-             H6.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList6[i] = 0.0;
+             if (instrument6.getLabel() == "SYNTH"){
+               A6.setCaptionLabel("");
+               B6.setCaptionLabel("");
+               C6.setCaptionLabel("");
+               D6.setCaptionLabel("");
+               E6.setCaptionLabel("");
+               F6.setCaptionLabel("");
+               G6.setCaptionLabel("");
+               H6.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList6[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision6[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 6).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10345,19 +11064,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E6p.getLabel() == "P1" || E6p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E6p.getLabel() != "G0.5" || E6p.getLabel() != "G1"  || E6p.getLabel() != "G2"  || E6p.getLabel() != "G3"  || E6p.getLabel() != "G4"  || E6p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E6p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E6p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E6p.getLabel() != "SQ" || E6p.getLabel() != "SIN" || E6p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E6p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A6.setCaptionLabel("");
-             B6.setCaptionLabel("");
-             C6.setCaptionLabel("");
-             D6.setCaptionLabel("");
-             E6.setCaptionLabel("");
-             F6.setCaptionLabel("");
-             G6.setCaptionLabel("");
-             H6.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList6[i] = 0.0;
+             if (instrument6.getLabel() == "SYNTH"){
+               A6.setCaptionLabel("");
+               B6.setCaptionLabel("");
+               C6.setCaptionLabel("");
+               D6.setCaptionLabel("");
+               E6.setCaptionLabel("");
+               F6.setCaptionLabel("");
+               G6.setCaptionLabel("");
+               H6.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList6[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision6[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 6).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10488,19 +11225,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F6p.getLabel() == "P1" || F6p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F6p.getLabel() != "G0.5" || F6p.getLabel() != "G1"  || F6p.getLabel() != "G2"  || F6p.getLabel() != "G3"  || F6p.getLabel() != "G4"  || F6p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F6p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F6p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F6p.getLabel() != "SQ" || F6p.getLabel() != "SIN" || F6p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F6p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A6.setCaptionLabel("");
-             B6.setCaptionLabel("");
-             C6.setCaptionLabel("");
-             D6.setCaptionLabel("");
-             E6.setCaptionLabel("");
-             F6.setCaptionLabel("");
-             G6.setCaptionLabel("");
-             H6.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList6[i] = 0.0;
+             if (instrument6.getLabel() == "SYNTH"){
+               A6.setCaptionLabel("");
+               B6.setCaptionLabel("");
+               C6.setCaptionLabel("");
+               D6.setCaptionLabel("");
+               E6.setCaptionLabel("");
+               F6.setCaptionLabel("");
+               G6.setCaptionLabel("");
+               H6.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList6[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision6[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 6).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10633,19 +11388,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(A7p.getLabel() == "P1" || A7p.getLabel() == "P-1"){panValue0 = 0;}
+             if(A7p.getLabel() != "G0.5" || A7p.getLabel() != "G1"  || A7p.getLabel() != "G2"  || A7p.getLabel() != "G3"  || A7p.getLabel() != "G4"  || A7p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(A7p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(A7p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(A7p.getLabel() != "SQ" || A7p.getLabel() != "SIN" || A7p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              A7p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A7.setCaptionLabel("");
-             B7.setCaptionLabel("");
-             C7.setCaptionLabel("");
-             D7.setCaptionLabel("");
-             E7.setCaptionLabel("");
-             F7.setCaptionLabel("");
-             G7.setCaptionLabel("");
-             H7.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList7[i] = 0.0;
+             if (instrument7.getLabel() == "SYNTH"){
+               A7.setCaptionLabel("");
+               B7.setCaptionLabel("");
+               C7.setCaptionLabel("");
+               D7.setCaptionLabel("");
+               E7.setCaptionLabel("");
+               F7.setCaptionLabel("");
+               G7.setCaptionLabel("");
+               H7.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList7[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision7[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 7).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10777,19 +11550,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(B7p.getLabel() == "P1" || B7p.getLabel() == "P-1"){panValue0 = 0;}
+             if(B7p.getLabel() != "G0.5" || B7p.getLabel() != "G1"  || B7p.getLabel() != "G2"  || B7p.getLabel() != "G3"  || B7p.getLabel() != "G4"  || B7p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(B7p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(B7p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(B7p.getLabel() != "SQ" || B7p.getLabel() != "SIN" || B7p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              B7p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A7.setCaptionLabel("");
-             B7.setCaptionLabel("");
-             C7.setCaptionLabel("");
-             D7.setCaptionLabel("");
-             E7.setCaptionLabel("");
-             F7.setCaptionLabel("");
-             G7.setCaptionLabel("");
-             H7.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList7[i] = 0.0;
+             if (instrument7.getLabel() == "SYNTH"){
+               A7.setCaptionLabel("");
+               B7.setCaptionLabel("");
+               C7.setCaptionLabel("");
+               D7.setCaptionLabel("");
+               E7.setCaptionLabel("");
+               F7.setCaptionLabel("");
+               G7.setCaptionLabel("");
+               H7.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList7[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision7[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 7).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -10920,19 +11711,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(C7p.getLabel() == "P1" || C7p.getLabel() == "P-1"){panValue0 = 0;}
+             if(C7p.getLabel() != "G0.5" || C7p.getLabel() != "G1"  || C7p.getLabel() != "G2"  || C7p.getLabel() != "G3"  || C7p.getLabel() != "G4"  || C7p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(C7p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(C7p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(C7p.getLabel() != "SQ" || C7p.getLabel() != "SIN" || C7p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              C7p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A7.setCaptionLabel("");
-             B7.setCaptionLabel("");
-             C7.setCaptionLabel("");
-             D7.setCaptionLabel("");
-             E7.setCaptionLabel("");
-             F7.setCaptionLabel("");
-             G7.setCaptionLabel("");
-             H7.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList7[i] = 0.0;
+             if (instrument7.getLabel() == "SYNTH"){
+               A7.setCaptionLabel("");
+               B7.setCaptionLabel("");
+               C7.setCaptionLabel("");
+               D7.setCaptionLabel("");
+               E7.setCaptionLabel("");
+               F7.setCaptionLabel("");
+               G7.setCaptionLabel("");
+               H7.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList7[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision7[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 7).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -11063,19 +11872,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(D7p.getLabel() == "P1" || D7p.getLabel() == "P-1"){panValue0 = 0;}
+             if(D7p.getLabel() != "G0.5" || D7p.getLabel() != "G1"  || D7p.getLabel() != "G2"  || D7p.getLabel() != "G3"  || D7p.getLabel() != "G4"  || D7p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(D7p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(D7p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(D7p.getLabel() != "SQ" || D7p.getLabel() != "SIN" || D7p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              D7p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A7.setCaptionLabel("");
-             B7.setCaptionLabel("");
-             C7.setCaptionLabel("");
-             D7.setCaptionLabel("");
-             E7.setCaptionLabel("");
-             F7.setCaptionLabel("");
-             G7.setCaptionLabel("");
-             H7.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList7[i] = 0.0;
+             if (instrument7.getLabel() == "SYNTH"){
+               A7.setCaptionLabel("");
+               B7.setCaptionLabel("");
+               C7.setCaptionLabel("");
+               D7.setCaptionLabel("");
+               E7.setCaptionLabel("");
+               F7.setCaptionLabel("");
+               G7.setCaptionLabel("");
+               H7.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList7[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision7[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 7).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -11206,19 +12033,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(E7p.getLabel() == "P1" || E7p.getLabel() == "P-1"){panValue0 = 0;}
+             if(E7p.getLabel() != "G0.5" || E7p.getLabel() != "G1"  || E7p.getLabel() != "G2"  || E7p.getLabel() != "G3"  || E7p.getLabel() != "G4"  || E7p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(E7p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(E7p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(E7p.getLabel() != "SQ" || E7p.getLabel() != "SIN" || E7p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              E7p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A7.setCaptionLabel("");
-             B7.setCaptionLabel("");
-             C7.setCaptionLabel("");
-             D7.setCaptionLabel("");
-             E7.setCaptionLabel("");
-             F7.setCaptionLabel("");
-             G7.setCaptionLabel("");
-             H7.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList7[i] = 0.0;
+             if (instrument7.getLabel() == "SYNTH"){
+               A7.setCaptionLabel("");
+               B7.setCaptionLabel("");
+               C7.setCaptionLabel("");
+               D7.setCaptionLabel("");
+               E7.setCaptionLabel("");
+               F7.setCaptionLabel("");
+               G7.setCaptionLabel("");
+               H7.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList7[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision7[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 7).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
@@ -11349,19 +12194,37 @@ if (leave == 0 || propLeave == 0){
          }
          if(instPropRighty == 1){
            if(time0Col == 0){
+             if(F7p.getLabel() == "P1" || F7p.getLabel() == "P-1"){panValue0 = 0;}
+             if(F7p.getLabel() != "G0.5" || F7p.getLabel() != "G1"  || F7p.getLabel() != "G2"  || F7p.getLabel() != "G3"  || F7p.getLabel() != "G4"  || F7p.getLabel() != "G5"){gainValue0 = 0.5;}
+             if(F7p.getLabel() != "D_OFF"){delayVal0 = 0.0;}
+             if(F7p.getLabel() != "B_OFF"){bitRes0 = 0;}
+             if(F7p.getLabel() != "SQ" || F7p.getLabel() != "SIN" || F7p.getLabel() != "SAW"){disWave0 = Waves.SINE;}
              F7p.setCaptionLabel("");
            }
            if(time0Col == 1){
-             A7.setCaptionLabel("");
-             B7.setCaptionLabel("");
-             C7.setCaptionLabel("");
-             D7.setCaptionLabel("");
-             E7.setCaptionLabel("");
-             F7.setCaptionLabel("");
-             G7.setCaptionLabel("");
-             H7.setCaptionLabel("");
-             for(int i = 0; i < 8; i++){
-               instList7[i] = 0.0;
+             if (instrument7.getLabel() == "SYNTH"){
+               A7.setCaptionLabel("");
+               B7.setCaptionLabel("");
+               C7.setCaptionLabel("");
+               D7.setCaptionLabel("");
+               E7.setCaptionLabel("");
+               F7.setCaptionLabel("");
+               G7.setCaptionLabel("");
+               H7.setCaptionLabel("");
+               for(int i = 0; i < 8; i++){
+                 instList7[i] = 0.0;
+               }
+             }
+             else{
+               for(int h = 0; h < 8; h++){
+               decision7[h] = 0;
+             }
+                for(int h = 0; h < 8; h++){
+                  int j = 65 + h;
+                  char k = (char)j;
+                  String y = str(k);
+                  cp5.get(controlP5.Button.class, y + 7).setColorBackground( color(#C6C6C6) );
+                }
              }
            }
          }
